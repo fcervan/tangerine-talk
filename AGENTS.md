@@ -11,16 +11,17 @@
 Tutor de idiomas com IA **gratuito, open source (MIT) e auto-hospedável**. A landing
 está pronta (copy hardcoded em **pt-BR**) e o backend já tem identidade e multiusuário.
 
-**Fase atual:** Fases 1, 2, 3, 4 e 5 concluídas — FastAPI, MySQL, migração, login por cookie
+**Fase atual:** Fases 1, 2, 3, 4, 5 e 6 concluídas — FastAPI, MySQL, migração, login por cookie
 `httpOnly`, refresh rotacionado, convites, papéis `owner`/`member`, perfil, exportação
 e exclusão de conta; **BYOK** com chave por usuário cifrada (Fernet), teste de conexão,
 cadeia de fallback e modo offline; **conteúdo versionado** com trilha, lições,
 exercícios, glossas por `ui_language`, decks oficiais e progresso por usuário;
 **tutor de IA** com chat, correção, TTS/STT, player de lição com 4 habilidades e
 fallback automático entre provedores; **gamificação** com XP, streak, SRS (SM-2),
-selos, ligas semanais e missões diárias.
+selos, ligas semanais e missões diárias; **Qdrant** índice vetorial derivado (BGE-M3,
+híbrido denso+esparso, outbox sync, grounding no tutor).
 57 testes passam (incluindo isolamento entre usuários).
-**Próximas fases:** conteúdo expandido, Qdrant, qualidade. Ver seção 10.
+**Próximas fases:** conteúdo expandido (mais idiomas/níveis, decks próprios), qualidade. Ver seção 10.
 
 ---
 

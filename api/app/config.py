@@ -49,6 +49,14 @@ class Settings(BaseSettings):
     ollama_base_url: str = ""
     provider_timeout_seconds: float = 8.0
 
+    # Qdrant (vetorial)
+    qdrant_url: str = "http://127.0.0.1:6333"
+    qdrant_api_key: str = ""
+    qdrant_timeout: float = 10.0
+    embedding_model: str = "BAAI/bge-m3"
+    embedding_dim: int = 1024
+    collection_prefix: str = "content_v1_"
+
     @property
     def is_dev(self) -> bool:
         return self.app_env in {"dev", "test"}

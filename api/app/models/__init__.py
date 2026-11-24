@@ -1,12 +1,14 @@
 """Modelos registrados na metadata (importados pelo Alembic)."""
 
 from .content import (
+    ContentOutbox,
     Deck,
     DeckItem,
     Exercise,
     Item,
     ItemTranslation,
     Lesson,
+    OutboxEventType,
     Unit,
     UserLessonProgress,
 )
@@ -23,6 +25,7 @@ from .user import AuthSession, Invite, User
 
 __all__ = [
     "AuthSession",
+    "ContentOutbox",
     "Deck",
     "DeckItem",
     "Exercise",
@@ -30,6 +33,7 @@ __all__ = [
     "Item",
     "ItemTranslation",
     "Lesson",
+    "OutboxEventType",
     "ProviderCredential",
     "Unit",
     "User",

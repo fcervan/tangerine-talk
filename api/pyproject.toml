@@ -18,6 +18,11 @@ dependencies = [
   "pyjwt>=2.10,<3",
   "email-validator>=2.2,<3",
   "python-multipart>=0.0.34",
+  # Qdrant (vetorial) + Redis (cache/fila) + embeddings
+  "qdrant-client>=1.12,<2",
+  "redis>=5.0,<6",
+  "sentence-transformers>=3.0,<4",
+  "torch>=2.4,<3",
 ]
 
 [dependency-groups]
@@ -27,6 +32,10 @@ dev = [
   "aiosqlite>=0.20,<1",
   "ruff>=0.7,<1",
   "mypy>=1.13,<2",
+  "qdrant-client>=1.20.0",
+  "redis>=5.3.1",
+  "sentence-transformers>=3.4.1",
+  "torch>=2.15.0",
 ]
 
 [tool.uv]

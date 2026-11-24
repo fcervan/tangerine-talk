@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from enum import StrEnum
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -17,6 +19,9 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
+)
+from sqlalchemy import (
+    Enum as SAEnum,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -128,12 +133,17 @@ class Exercise(Base):
 
 
 class Deck(Base):
-    """Baralho oficial do currículo. Baralhos próprios entram depois."""
+    """Baralho: oficiais (currículo) ou próprios do usuário.
+
+    - Oficiais: `is_official=True`, `user_id=NULL`, únicos por `target_language` + `slug`
+    - Próprios: `is_official=False`, `user_id` preenchido, únicos por `user_id` + `slug`
+    """
 
     __tablename__ = "decks"
     __table_args__ = (
         CheckConstraint("level IN ('A1','A2','B1','B2','C1','C2')", name="ck_decks_level"),
         UniqueConstraint("target_language", "slug", name="uq_decks_target_slug"),
+        UniqueConstraint("user_id", "slug", name="uq_decks_user_slug"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUIDBinary, primary_key=True, default=uuid7)
@@ -143,6 +153,9 @@ class Deck(Base):
     title: Mapped[str] = mapped_column(String(160))
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     is_official: Mapped[bool] = mapped_column(Boolean, default=True)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUIDBinary, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow, onupdate=utcnow)
 
@@ -174,3 +187,33 @@ class UserLessonProgress(Base):
     completed_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)
     score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)
+
+
+class OutboxEventType(StrEnum):
+    ITEM_UPSERT = "item_upsert"
+    ITEM_DELETE = "item_delete"
+    DECK_UPSERT = "deck_upsert"
+    DECK_DELETE = "deck_delete"
+
+
+class ContentOutbox(Base):
+    """Outbox para sincronização MySQL → Qdrant.
+
+    Eventos são inseridos na mesma transação que altera o conteúdo.
+    Um worker periódico lê e aplica no Qdrant.
+    """
+
+    __tablename__ = "content_outbox"
+    __table_args__ = (
+        {"mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_0900_as_cs"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUIDBinary, primary_key=True, default=uuid7)
+    event_type: Mapped[str] = mapped_column(SAEnum(OutboxEventType), nullable=False, index=True)
+    entity_id: Mapped[uuid.UUID] = mapped_column(UUIDBinary, nullable=False, index=True)
+    target_language: Mapped[str] = mapped_column(String(35), nullable=False, index=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)
+    processed_at: Mapped[datetime | None] = mapped_column(Timestamp, nullable=True, index=True)
+    attempts: Mapped[int] = mapped_column(default=0)
+    last_error: Mapped[str | None] = mapped_column(String(500), nullable=True)

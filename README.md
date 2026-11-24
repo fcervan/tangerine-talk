@@ -26,7 +26,7 @@ não paga) pelo provedor de IA que escolher.
 | Front (landing + app) | Next.js 14 · React 18 · TypeScript · Tailwind v3 · Framer Motion · GSAP · Lenis |
 | Backend | FastAPI · Python 3.12 · SQLAlchemy async · Alembic |
 | Banco | MySQL 8.4 |
-| Vetorial (RAG) | Qdrant |
+| Vetorial (RAG) | Qdrant (Fase 6: índice derivado, sync via outbox) |
 | Cache/fila | Redis (opcional) |
 | Infra | Docker Compose |
 
@@ -279,6 +279,19 @@ Endpoints (exigem sessão):
 
 Selos: `first_lesson`, `first_deck`, `streak_7/30/100`, `conversations_1/25/50`, `week_league_win`.
 SRS usa algoritmo SM-2 simplificado. Liga semanal: Bronze → Silver → Gold → Diamond, com promoção/rebaixamento automático.
+
+### Qdrant — Índice Vetorial (Fase 6)
+
+MySQL é a fonte da verdade; Qdrant é índice derivado e reconstruível via outbox.
+
+| Rota | O que faz |
+|---|---|
+| `POST /search` | busca híbrida (denso + esparso) com filtros por idioma/nível |
+| `POST /search/reindex` | reindexação completa (blue/green) — admin |
+
+Coleção: `content_v1_bge_m3` (BGE-M3, 1024 dims, cosine). Payload indexado: `target_language`, `level`, `item_type`, `item_id`, `deck_id`, `user_id`.
+Sincronização: tabela `content_outbox` no MySQL + worker assíncrono → upsert idempotente no Qdrant.
+Uso no tutor: grounding de lições (busca itens/regras da lição atual antes de chamar LLM).
 
 ## Documentos
 

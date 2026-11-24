@@ -310,3 +310,10 @@ Tudo que entra no Git é público. Regras:
    `/gamification`, `/streak`, `/badges`, `/srs/due`, `/srs/review`, `/missions`,
    `/league/current`, `/league/history`, `/leaderboard`. Selos: first_lesson,
    first_deck, streak_7/30/100, conversations_1/25/50, week_league_win.
+10. ~~Qdrant / Busca Vetorial~~ **Fechado e implementado na Fase 6:** índice
+   derivado do MySQL (BGE-M3, 1024 dims, cosine), híbrido denso+esparso,
+   sincronização via `content_outbox` + worker assíncrono, reindexação blue/green.
+   Uso no tutor: grounding de lições (busca itens/regras antes de chamar LLM).
+   Coleção: `content_v1_bge_m3`. Payload indexado: `target_language`, `level`,
+   `item_type`, `item_id`, `deck_id`, `user_id`. Endpoints: busca híbrida
+   (`POST /search`), reindexação admin.
