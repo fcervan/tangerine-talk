@@ -11,10 +11,11 @@
 Tutor de idiomas com IA **gratuito, open source (MIT) e auto-hospedável**. A landing
 está pronta (copy hardcoded em **pt-BR**) e o backend já tem identidade e multiusuário.
 
-**Fase atual:** Fase 1 concluída — FastAPI, MySQL, migração, login por cookie `httpOnly`,
-refresh rotacionado, convites, papéis `owner`/`member`, perfil, exportação e exclusão
-de conta. 28 testes passam (incluindo isolamento entre usuários).
-**Próximas fases:** provedores BYOK, conteúdo/trilha e motor de lição. Ver seção 10.
+**Fase atual:** Fases 1 e 2 concluídas — FastAPI, MySQL, migração, login por cookie
+`httpOnly`, refresh rotacionado, convites, papéis `owner`/`member`, perfil, exportação
+e exclusão de conta; **BYOK** com chave por usuário cifrada (Fernet), teste de conexão,
+cadeia de fallback e modo offline. 46 testes passam (incluindo isolamento entre usuários).
+**Próximas fases:** conteúdo/trilha e motor de lição. Ver seção 10.
 
 ---
 
@@ -51,7 +52,7 @@ npx tsc --noEmit                              # front
 
 cd api
 uv sync                                        # instala o backend
-uv run pytest -q                               # 28 testes
+uv run pytest -q                               # 46 testes
 uv run ruff check . && uv run mypy app
 uv run alembic upgrade head                    # aplica migrações no MySQL
 uv run python -m app.cli create-owner --help   # bootstrap do owner
@@ -100,9 +101,9 @@ app/
   layout.tsx            # locale do cookie, metadata i18n, Poppins, globals.css
   (marketing)/page.tsx  # landing (LenisProvider > Navbar > sections > Footer)
   (auth)/               # login e convite/[token]
-  (app)/                # onboarding e app (área autenticada)
+  (app)/                # onboarding, app e providers (área autenticada)
   globals.css           # tokens utilitários, keyframes, .bubble, .dot-grid, .marquee, reduced motion
-middleware.ts           # portão de UX: /app e /onboarding exigem tt_access
+middleware.ts           # portão de UX: /app, /onboarding e /providers
 components/
   Navbar.tsx            # header sticky, menu mobile animado
   Hero.tsx              # headline com máscara, tilt 3D, seletor de idiomas
@@ -117,7 +118,7 @@ components/
   LenisProvider.tsx     # provider de smooth scroll
   LocaleProvider.tsx    # useI18n(): locale, t(), setLocale()
   LocaleSwitcher.tsx    # seletor pt-BR/en-US
-  LoginForm.tsx, InviteForm.tsx, OnboardingWizard.tsx, AppDashboard.tsx
+  LoginForm.tsx, InviteForm.tsx, OnboardingWizard.tsx, AppDashboard.tsx, ProvidersPanel.tsx
   mockups/              # Speaking, Listening, Writing, Testing, Waveform
 lib/
   i18n/                 # locales/pt-BR.ts (tipa), en-US.ts, fallback pt-BR
@@ -133,9 +134,10 @@ api/
   app/auth/             # login, refresh, logout, cookies, deps e convites
   app/users/            # perfil, onboarding, membros, convites, export e exclusão
   app/i18n.py           # BCP-47, base do idioma, modo monolingual/bilingual
-  app/models/           # User, AuthSession, Invite — UUIDv7 em BINARY(16)
-  app/security/         # Argon2id, JWT/refresh, limite de login
-  alembic/versions/     # 0001 identidade · 0002 idiomas e onboarding
+  app/models/           # User, AuthSession, Invite, ProviderCredential — UUIDv7 em BINARY(16)
+  app/providers/        # catálogo, cadeia de fallback, teste de conexão e rotas BYOK
+  app/security/         # Argon2id, JWT/refresh, limite de login, Fernet
+  alembic/versions/     # 0001 identidade · 0002 idiomas · 0003 credenciais BYOK
   tests/                # SQLite em memória + httpx assíncrono
 docker-compose.yml      # mysql :3310, api :8010, web (profile) :3110
 next.config.mjs         # rewrite /api/* → FastAPI
@@ -251,14 +253,14 @@ A landing sugere o produto. Escopo de telas/recursos em `docs/plano-telas-e-recu
 
 **Stack já decidida (2026-11):** front Next.js separado do backend **FastAPI**, tudo em **Docker**; banco **MySQL**; vetorial **Qdrant**; cache/fila **Redis**; LLM com fallback Groq → Ollama Cloud → OpenRouter.
 
-Status: **Fase 0 (higiene/esqueleto) e Fase 1 (identidade) concluídas**. O app
-tem onboarding, login e convite; i18n com pt-BR padrão, en-US secundário e
-abertura para novos locales. Falta o núcleo de aprendizado.
+Status: **Fases 0, 1 e 2 concluídas**. O app tem onboarding, login, convite,
+i18n com pt-BR padrão/en-US secundário e BYOK por usuário (chave cifrada, teste
+de conexão, fallback e modo offline). Falta o núcleo de aprendizado.
 
 Roadmap **sugerido** — o que ainda não está fechado:
 
 1. ✅ **Higiene do repositório** — licença MIT, SECURITY/CONTRIBUTING/CODE_OF_CONDUCT, `.gitignore`, gitleaks no CI
-2. ✅ **Fundação do app** — i18n em `lib/i18n` (pt-BR padrão, en-US, extensível), `lib/api.ts` com refresh automático, middleware protegendo `/app` e `/onboarding`
+2. ✅ **Fundação do app** — i18n em `lib/i18n` (pt-BR padrão, en-US, extensível), `lib/api.ts` com refresh automático, middleware protegendo `/app`, `/onboarding` e `/providers`
 3. ✅ **Auth e multiusuário** — backend + telas de login, convite e onboarding (idioma da interface, idioma alvo, nível, meta diária)
    - pendente: migrar a copy da landing para os dicionários (visual inalterado)
 4. **Núcleo de aprendizado**
@@ -272,9 +274,10 @@ Roadmap **sugerido** — o que ainda não está fechado:
 6. **Conteúdo**
    - currículo, árvore de habilidades, decks oficiais
    - painel para criar decks próprios
-7. **Provedores de IA e multiusuário**
-   - BYOK por usuário (criptografado), modo offline (Ollama)
+7. ✅ **Provedores de IA e multiusuário** — Fase 2 entregue
+   - BYOK por usuário (Fernet), teste de conexão, cadeia `Groq → Ollama Cloud → OpenRouter → Ollama` e modo offline
    - convites por e-mail e isolamento entre membros
+   - pendente da Fase 4: o motor de lição consumir a cadeia com retry e aviso de quota
 8. **Qualidade**
    - acessibilidade AA, performance (Core Web Vitals), analytics
    - testes: unitários para lógica de SRS/XP e E2E dos fluxos críticos

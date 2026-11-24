@@ -6,10 +6,11 @@ Você usa seus próprios tokens — de provedores gratuitos ou pagos — ou roda
 **100% offline com Ollama**. Cada pessoa da casa tem sua própria conta, seu
 próprio progresso e sua própria chave.
 
-> **Estado atual:** landing concluída e **Fase 1 (identidade e multiusuário)
-> concluída**: API com login, convites, papéis `owner`/`member`, perfis e
-> migração no MySQL. O app já tem telas de login, convite, onboarding e uma
-> área inicial; o motor de lições ainda está em construção.
+> **Estado atual:** landing concluída e **Fases 1 e 2 concluídas**: identidade,
+> convites, papéis `owner`/`member`, onboarding e BYOK (chave por usuário,
+> criptografada, com teste de conexão e fallback). O app já tem telas de login,
+> convite, onboarding, área inicial e configuração de provedores; o motor de
+> lições ainda está em construção.
 
 ## Por que existe
 
@@ -135,7 +136,7 @@ docker compose --profile web up -d --build   # http://localhost:3110
 
 ```bash
 npx tsc --noEmit                      # front
-cd api && uv run pytest -q            # backend (28 testes)
+cd api && uv run pytest -q            # backend (46 testes)
 cd api && uv run ruff check . && uv run mypy app
 ```
 
@@ -145,34 +146,66 @@ cd api && uv run ruff check . && uv run mypy app
 app/
   (marketing)/    landing
   (auth)/         login e convite
-  (app)/          onboarding e área autenticada (/app)
+  (app)/          onboarding, área autenticada (/app) e provedores (/providers)
   layout.tsx      locale vindo do cookie + LocaleProvider
-middleware.ts     portão de UX para /app e /onboarding
-components/       landing + formulários, LocaleSwitcher e wizard
+middleware.ts     portão de UX para /app, /onboarding e /providers
+components/       landing + formulários, LocaleSwitcher, wizard e ProvidersPanel
 lib/i18n/         dicionários pt-BR/en-US e resolução com fallback
 lib/api.ts        fetch same-origin com refresh automático
 api/
   app/auth/       login, refresh, logout, convites, cookies e dependências
   app/users/      perfil, onboarding, membros, convites, export e exclusão
   app/i18n.py     normalização BCP-47 e modo monolingual/bilingual
-  app/models/     usuário, sessão e convite (UUIDv7 em BINARY(16))
-  app/security/   Argon2id, JWT/refresh e limite de tentativas
-  alembic/        0001 identidade · 0002 idiomas e onboarding
-  tests/          28 testes, incluindo isolamento entre usuários
+  app/providers/  catálogo, criptografia de chave, fallback e rotas BYOK
+  app/models/     usuário, sessão, convite e credencial (UUIDv7 em BINARY(16))
+  app/security/   Argon2id, JWT/refresh, limite de tentativas e Fernet
+  alembic/        0001 identidade · 0002 idiomas · 0003 credenciais BYOK
+  tests/          46 testes, incluindo isolamento entre usuários
 docs/             produto, arquitetura, referências, catálogo de efeitos
 public/           mascote
 docker-compose.yml
 web.Dockerfile
 ```
 
-## Provedores de IA
+## Provedores de IA (BYOK)
 
-As chaves são **por usuário** e ficam criptografadas no banco — nunca em `.env`,
-nunca no Git, nunca em log. O app aceita qualquer endpoint compatível com OpenAI
-(OpenAI, DeepSeek, GLM, Qwen/DashScope, Groq, OpenRouter, Ollama) e tem adaptador
-para Anthropic.
+Cada membro cadastra **a própria** chave em `/providers`. Ela é cifrada em repouso
+com Fernet (chave derivada de `APP_SECRET_KEY`) e descriptografada só no momento
+da chamada, no servidor. A API devolve apenas `key_hint` (`sk-…a1b2`) e metadados:
+nem a chave, nem o cifrado aparecem em resposta, log, exportação ou mensagem de erro.
 
-Modo offline (`OFFLINE_MODE=1`) força Ollama e desliga o que depende de nuvem.
+Provedores disponíveis agora (todos com transporte OpenAI-compatible):
+
+| Slug | Chave | Uso |
+|---|---|---|
+| `groq` | sim | chat/stream, correção estruturada e STT — primeiro da cadeia |
+| `ollama_cloud` | sim | chat/stream/correção — segundo da cadeia |
+| `openrouter` | sim | chat/stream/correção e embeddings — terceiro da cadeia |
+| `ollama` | não | local, sem nuvem; última opção da cadeia |
+
+Endpoints (todos exigem sessão e filtram por `user_id`):
+
+| Rota | O que faz |
+|---|---|
+| `GET /me/providers` | credenciais + catálogo + ordem de fallback |
+| `POST /me/providers` | cadastra (uma credencial por provedor) |
+| `PATCH /me/providers/{provider}` | troca chave/modelo/URL ou ativa/desativa |
+| `DELETE /me/providers/{provider}` | remove |
+| `POST /me/providers/{provider}/test` | chamada mínima de chat; status `ok`, `invalid_key`, `quota`, `provider_error` ou `network` |
+| `GET /me/providers/route?task=chat` | mostra a cadeia planejada para a tarefa, sem chaves |
+
+A rota por tarefa (`chat`, `feedback`, `correction`, `embedding`, `tts`, `stt`) filtra
+por capacidade. `OFFLINE_MODE=1` remove os provedores em nuvem da cadeia e deixa
+somente o Ollama local; `OLLAMA_BASE_URL` define o endpoint dele (o sufixo `/v1` é
+acrescentado se faltar). A ordem `Groq → Ollama Cloud → OpenRouter → Ollama` é fixa
+no catálogo, não vem do cliente.
+
+> Em **dev sem `.env`**, `APP_SECRET_KEY` é efêmera: ao reiniciar a API, as chaves
+> salvas ficam ilegíveis e precisam ser cadastradas de novo. Em produção a chave é
+> obrigatória e estável. Trocar a chave mestra também invalida as credenciais.
+
+O adaptador Anthropic e a chamada de chat reutilizando a cadeia pelo motor de
+lições entram com a Fase 4.
 
 ## Documentos
 

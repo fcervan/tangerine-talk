@@ -174,17 +174,22 @@ camada de provedores é **configuração**, não código.
 
 ### Como funciona
 
-| Peça | Decisão |
-|---|---|
-| Transporte | **OpenAI-compatible** para quase tudo (OpenAI, DeepSeek, GLM, Qwen/DashScope, Groq, OpenRouter, Ollama) + **adaptador Anthropic** |
-| Escopo da chave | **por usuário** (cada membro usa a própria); o owner não vê a chave de ninguém |
-| Armazenamento | criptografada em repouso (Fernet/`cryptography`) com `APP_SECRET_KEY` do ambiente |
-| Exposição | a API **nunca** devolve a chave; só `sk-…a1b2` e metadados |
-| Capacidades | `chat`, `stream`, `structured`, `vision`, `embeddings`, `tts`, `stt` — o app consulta antes de usar |
-| Roteamento | por tarefa: `feedback_rápido`, `tutor`, `correção`, `embedding`, `tts`, `stt` |
-| Fallback | cadeia do próprio usuário; erro de quota cai para o próximo e avisa |
-| Teste | botão "testar conexão", sem expor a chave |
-| Offline | `OFFLINE_MODE=1` força Ollama e desliga dependências de nuvem |
+| Peça | Decisão | Estado |
+|---|---|---|
+| Transporte | **OpenAI-compatible** (Groq, Ollama Cloud, OpenRouter, Ollama); adaptador Anthropic planejado | parcial |
+| Escopo da chave | **por usuário** (cada membro usa a própria); o owner não vê a chave de ninguém | feito |
+| Armazenamento | Fernet/`cryptography`, chave derivada de `APP_SECRET_KEY`, `provider_credentials` (migração `0003`) | feito |
+| Exposição | a API **nunca** devolve a chave nem o cifrado; só `sk-…a1b2` e metadados | feito |
+| Capacidades | catálogo estático: `chat`, `stream`, `structured`, `embeddings`, `tts`, `stt` (`vision` reservado) | feito |
+| Roteamento | `GET /me/providers/route?task=…` filtra por capacidade; tarefas `chat`, `feedback`, `correction`, `embedding`, `tts`, `stt` | feito |
+| Fallback | cadeia fixa Groq → Ollama Cloud → OpenRouter → Ollama; **consumir** a cadeia com retry e aviso de quota é trabalho do motor de lição (Fase 4) | cadeia pronta |
+| Teste | `POST /me/providers/{provider}/test` faz uma chamada mínima e devolve status estável; corpo do erro do provedor nunca vaza | feito |
+| Offline | `OFFLINE_MODE=1` remove nuvens da cadeia; `OLLAMA_BASE_URL` define o endpoint local | feito |
+
+A chave mestra é estável em produção e obrigatória. Se `APP_SECRET_KEY` mudar, as
+credenciais cadastradas ficam ilegíveis e o usuário as cadastra novamente — o
+erro é explícito e não contém segredo. Em dev sem `.env`, a chave é efêmera e o
+mesmo comportamento acontece a cada reinício da API.
 
 ### Matriz de capacidades (referência)
 
@@ -285,3 +290,6 @@ Tudo que entra no Git é público. Regras:
 3. **Embedding**: BGE-M3 self-hosted ou `text-embedding-3-small`?
 4. **Offline na Fala**: aceitar sem score (recomendado) ou investir em alinhamento local?
 5. **Landing**: trocar "Preços/upgrade" por "gratuito e open source" antes de publicar?
+6. ~~BYOK~~ **Fechado e implementado na Fase 2:** chave por usuário cifrada com
+   Fernet, catálogo com quatro provedores, cadeia fixa de fallback, teste de
+   conexão e modo offline. Falta o motor de lição consumir a cadeia com retry.

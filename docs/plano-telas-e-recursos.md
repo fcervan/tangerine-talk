@@ -115,7 +115,7 @@
 |---|---|---|
 | S1 | Perfil | nome, avatar, idioma(s), nível, meta, estatísticas |
 | S2 | Configurações | conta/senha, idioma da interface, **voz e velocidade**, notificações, acessibilidade, privacidade |
-| S3 | **Provedores de IA (BYOK)** | cadastrar/testar chave, escolher modelo, capacidades, roteamento por tarefa |
+| S3 | **Provedores de IA (BYOK)** — ✅ Fase 2 | cadastrar/testar chave, escolher modelo, capacidades, roteamento por tarefa; rota `/providers`, chave cifrada e fallback visível |
 | S4 | **Membros e convites** (owner) | listar membros, convidar por e-mail, revogar acesso |
 | S5 | Ajuda / FAQ / suporte | + reportar problema |
 
