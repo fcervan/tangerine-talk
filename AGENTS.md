@@ -208,9 +208,13 @@ Regras já aplicadas e que devem ser mantidas:
 
 ---
 
-## 10. Próxima fase: a aplicação (proposta, validar com o usuário)
+## 10. Próxima fase: a aplicação
 
-A landing sugere o produto. Roadmap **sugerido** — não assuma nada disso como decidido:
+A landing sugere o produto. Escopo de telas/recursos em `docs/plano-telas-e-recursos.md`; stack e decisões em `docs/arquitetura-e-tecnologias.md`.
+
+**Stack já decidida (2026-11):** front Next.js separado do backend **FastAPI**, tudo em **Docker**; banco **MySQL**; vetorial **Qdrant**; cache/fila **Redis**; LLM com fallback Groq → Ollama Cloud → OpenRouter.
+
+Roadmap **sugerido** — o que ainda não está fechado:
 
 1. **Higiene do repositório**
    - `git init` + `.gitignore` (`node_modules/`, `.next/`, `*.tsbuildinfo`, `.env*`)
@@ -221,7 +225,7 @@ A landing sugere o produto. Roadmap **sugerido** — não assuma nada disso como
    - shell autenticado (sidebar/topbar), tema e componentes compartilhados
    - decidir sobre i18n (hoje hardcoded pt-BR)
 3. **Auth + onboarding**
-   - login (Auth.js ou provedor externo)
+   - login (identidade no FastAPI; cookie `httpOnly`)
    - escolha de idioma alvo, nível e meta diária
 4. **Núcleo de aprendizado**
    - player de lição com as 4 habilidades (fala, escuta, escrita, testes)
@@ -230,18 +234,18 @@ A landing sugere o produto. Roadmap **sugerido** — não assuma nada disso como
 5. **Progresso e gamificação**
    - XP, sequência (streak), ligas, metas
    - repetição espaçada (SRS) para os flashcards
-   - persistência: banco (Postgres + Prisma é a opção mais direta) ou SQLite em dev
+   - persistência: **MySQL** (async, SQLAlchemy + Alembic) atrás do backend FastAPI
 6. **Conteúdo**
    - currículo, árvore de habilidades, decks oficiais
    - painel para criar decks próprios
-7. **Monetização**
-   - página de preços real (hoje `#pricing` aponta para o CTA)
-   - plano gratuito vs. assinatura
+7. **Provedores de IA e multiusuário**
+   - BYOK por usuário (criptografado), modo offline (Ollama)
+   - convites por e-mail e isolamento entre membros
 8. **Qualidade**
    - acessibilidade AA, performance (Core Web Vitals), analytics
    - testes: unitários para lógica de SRS/XP e E2E dos fluxos críticos
 
-**Decisões que precisam do usuário antes de codar:** stack de backend, banco, auth, provedor de IA, estratégia de áudio/pronúncia, e se o app começa como SPA autenticada ou com onboarding sem login.
+**Decisões ainda abertas:** provedor de áudio/pronúncia (Azure vs. Speechace), push-to-talk vs. full-duplex, idiomas do lançamento, modelo de embedding (BGE-M3 vs. OpenAI), tratamento da Fala offline (sem nota vs. alinhamento local) e se o app começa como SPA autenticada ou com onboarding sem login. Detalhes em `docs/arquitetura-e-tecnologias.md` §13.
 
 ---
 
@@ -260,14 +264,20 @@ A landing sugere o produto. Roadmap **sugerido** — não assuma nada disso como
 
 ## 12. Referências
 
-- `docs/prompt-landing-page-efeitos-premium.md` — prompt/catálogo de efeitos de movimento, 3D e estética, com a arquitetura **índice (`/lab`) + uma página por efeito (`/lab/[slug]`)**, fichas técnicas e critérios de performance. Útil para evoluir a landing ou criar o laboratório de efeitos. **Já está dentro do projeto** (cópia de `~/Downloads`).
+- `docs/plano-telas-e-recursos.md` — rascunho de produto: inventário de promessas da landing, sitemap (~35 telas), recursos por domínio, priorização P0/P1/P2 e decisões pendentes.
+- `docs/arquitetura-e-tecnologias.md` — stack decidida (Next + FastAPI + MySQL + Qdrant + Redis + Docker), implicações do MySQL, regras do Qdrant, IA/voz, riscos e decisões abertas.
+- `docs/referencias-engenharia-ia.md` — o que aproveitar e o que evitar dos repositórios de estudo locais (assistente-suporte, avaliador-vendas, docling-service, dbscope, RAG avançado, LangGraph, SLM), com mapa módulo → referência e spikes recomendados.
+- `docs/prompt-landing-page-efeitos-premium.md` — prompt/catálogo de efeitos de movimento, 3D e estética, com a arquitetura **índice (`/lab`) + uma página por efeito (`/lab/[slug]`)**, fichas técnicas e critérios de performance. Útil para evoluir a landing ou criar o laboratório de efeitos.
 
 ---
 
 ## 13. Repositório e ambiente
 
-- **Remote:** `git@github.com:fcervan/tangerine-talk.git` (SSH; branch `main`). Equivalente HTTPS: `https://github.com/fcervan/tangerine-talk.git`.
-- **Path atual:** `/home/fcervan/Documentos/scoras-academy/projetos/tangerine-talk`.
-- `git push` usa a chave SSH `~/.ssh/id_rsa` (já autenticada como `fcervan`). HTTPS **não** tem credential helper configurado; `gh` CLI **não está instalado** nesta máquina.
+**Repositório público.** Tudo que entra no Git é visível para o mundo — trate cada commit como publicação.
+
+- Layout: front (Next.js) na raiz e backend em `api/`; infraestrutura em `docker-compose.yml`.
 - Para conferir o estado: `git status`, `git log --oneline -5`, `npm run dev`.
-- **Nunca** versione `node_modules/`, `.next/` ou `*.tsbuildinfo` (já cobertos pelo `.gitignore`).
+- **Nunca** versione `node_modules/`, `.next/`, `*.tsbuildinfo`, `.env`, dumps, áudios ou volumes (já cobertos pelo `.gitignore`).
+- Configuração pessoal fica **fora** do repositório (`.env`, chaves SSH, arquivos de segredo).
+- Antes de publicar, rode a verificação de segredos no histórico (ver `.github/workflows/ci.yml`).
+- Não faça `git add/commit/push` sem confirmação explícita do mantenedor.
