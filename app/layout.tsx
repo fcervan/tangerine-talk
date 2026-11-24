@@ -1,15 +1,35 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+
+import LocaleProvider from "@/components/LocaleProvider";
+import {
+  DEFAULT_LOCALE,
+  normalizeLocale,
+  resolveDictionaryLocale,
+  translate,
+} from "@/lib/i18n";
+
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Tangerine Talk — tutor de idiomas com IA",
-  description:
-    "Fale, ouça, escreva e teste até alcançar a fluência, com um tutor de IA que dá feedback instantâneo.",
-};
+function currentLocale(): string {
+  return resolveDictionaryLocale(
+    normalizeLocale(cookies().get("tt_locale")?.value ?? DEFAULT_LOCALE),
+  );
+}
+
+export function generateMetadata(): Metadata {
+  const locale = currentLocale();
+  return {
+    title: translate(locale, "meta.title"),
+    description: translate(locale, "meta.description"),
+  };
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = currentLocale();
+
   return (
-    <html lang="pt-BR">
+    <html lang={locale}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -18,7 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <LocaleProvider initialLocale={locale}>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

@@ -1,0 +1,91 @@
+import type { Dictionary } from "./pt-BR";
+
+/** Segundo idioma oferecido. Novos locales seguem este mesmo arquivo. */
+
+const enUS: Dictionary = {
+  meta: {
+    title: "Tangerine Talk — AI language tutor",
+    description:
+      "Speak, listen, write and test your way to fluency with an AI tutor that gives instant feedback.",
+  },
+  common: {
+    loading: "Loading…",
+    back: "Back",
+    next: "Continue",
+    cancel: "Cancel",
+    save: "Save",
+    genericError: "Something went wrong. Please try again.",
+    interfaceLanguage: "App language",
+  },
+  login: {
+    title: "Welcome back",
+    subtitle: "Sign in to keep learning.",
+    email: "Email",
+    password: "Password",
+    submit: "Sign in",
+    submitting: "Signing in…",
+    invalid: "Invalid email or password.",
+    restricted: "This instance is invite-only. Ask the owner for a link.",
+  },
+  invite: {
+    title: "You're invited",
+    invitedFor: "Invite for",
+    expires: "Expires on",
+    name: "Your name",
+    password: "Choose a password",
+    passwordHint: "Use at least 12 characters.",
+    submit: "Create my account",
+    submitting: "Creating…",
+    invalid: "This invite is invalid or has expired.",
+    used: "This invite has already been used.",
+  },
+  onboarding: {
+    title: "Let's set up your learning",
+    subtitle: "Three quick choices and you're ready to start.",
+    step: "Step {current} of {total}",
+    interfaceTitle: "Which language should the app use?",
+    interfaceHelp: "It sets the wording, instructions, glosses and feedback.",
+    otherLocale: "Another language code",
+    otherLocaleHelp: "E.g. es-ES, fr-FR, zh-Hans-CN",
+    targetTitle: "Which language do you want to learn?",
+    targetHelp: "Any one. The app does not limit the list of target languages.",
+    targetLabel: "Target language code",
+    targetHelpCode: "Use a code such as ja-JP, de-DE or ko-KR.",
+    levelTitle: "What is your level?",
+    goalTitle: "Daily goal",
+    goalHelp: "Minutes per day",
+    modeTitle: "How your exercises will work",
+    modeBilingual: "Translations between the app language and the language you're learning.",
+    modeMonolingual:
+      "Same language on both sides: no translation, focused on reading, grammar and pronunciation.",
+    finish: "Start learning",
+    saving: "Saving…",
+    required: "Pick an option to continue.",
+    targetRequired: "Enter the code of the language you want to learn.",
+    invalidLocale: "Invalid code. Try something like pt-BR or ja-JP.",
+  },
+  app: {
+    title: "Your space",
+    subtitle: "Your account, preferences and progress — isolated from everyone else.",
+    profile: "Your profile",
+    interfaceLanguage: "App language",
+    targetLanguage: "Language studied",
+    notSet: "Not set yet",
+    mode: "Exercise mode",
+    level: "Level",
+    dailyGoal: "Daily goal",
+    minutes: "minutes",
+    bilingual: "Bilingual",
+    monolingual: "Monolingual",
+    logout: "Sign out",
+    comingSoon: "The lesson engine is being built. Check back soon.",
+    completeOnboarding: "Finish setup",
+  },
+  locale: {
+    label: "Language",
+    "pt-BR": "Português (Brasil)",
+    "en-US": "English (United States)",
+  },
+};
+
+export default enUS;
