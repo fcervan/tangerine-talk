@@ -32,6 +32,47 @@ export interface InvitePreview {
   expires_at: string;
 }
 
+/** Nenhum destes tipos contém a chave cadastrada — só `key_hint`. */
+export interface ProviderCatalogItem {
+  slug: string;
+  label: string;
+  capabilities: string[];
+  needs_key: boolean;
+  cloud: boolean;
+  default_model: string;
+  key_url: string;
+}
+
+export interface ProviderCredential {
+  id: string;
+  provider: string;
+  label: string;
+  key_hint: string | null;
+  base_url: string;
+  model: string;
+  capabilities: string[];
+  is_active: boolean;
+  last_tested_at: string | null;
+  last_used_at: string | null;
+  last_error: string | null;
+  created_at: string;
+}
+
+export interface ProviderList {
+  items: ProviderCredential[];
+  catalog: ProviderCatalogItem[];
+  fallback_order: string[];
+  offline_mode: boolean;
+}
+
+export interface ProviderTestResult {
+  provider: string;
+  ok: boolean;
+  status: "ok" | "invalid_key" | "quota" | "provider_error" | "network";
+  message: string;
+  latency_ms: number | null;
+}
+
 export async function apiFetch<T>(
   path: string,
   init: RequestInit = {},

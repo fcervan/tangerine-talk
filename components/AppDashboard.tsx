@@ -121,6 +121,13 @@ export default function AppDashboard() {
         </button>
         <button
           type="button"
+          onClick={() => router.push("/providers")}
+          className="rounded-pill border border-line px-5 py-2 text-sm font-medium text-body transition hover:border-tangerine focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tangerine"
+        >
+          {t("app.providersLink")}
+        </button>
+        <button
+          type="button"
           onClick={() => void logout()}
           className="rounded-pill bg-ink px-5 py-2 text-sm font-semibold text-white transition hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tangerine focus-visible:ring-offset-2"
         >
