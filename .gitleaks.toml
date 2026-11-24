@@ -1,0 +1,14 @@
+# Configuração do gitleaks para o Tangerine Talk.
+# Ignora artefatos de build e dependências — o CI já roda sobre um checkout limpo.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Artefatos gerados e dependências"
+paths = [
+  '''(^|/)\.next/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)\.venv/''',
+  '''(^|/)__pycache__/''',
+]

@@ -7,19 +7,56 @@
 /.next/
 /out/
 /build
+/dist/
 
 # artefatos
 *.tsbuildinfo
 next-env.d.ts
 
-# ambiente
+# segredos e ambiente — NUNCA versionar
 .env
-.env*.local
-
-# sistema
-.DS_Store
+.env.*
+!.env.example
 *.pem
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+*.key
+*.p12
+*.pfx
+secrets/
+
+# dados locais (áudio, dumps, bancos, índices)
+/data/
+/uploads/
+/audio/
+/qdrant_storage/
+/mysql_data/
+/logs/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+*.sql
+*.dump
+
+# caches de ferramentas
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+.uv/
+
+# sistema e editores
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# deploy
 .vercel
