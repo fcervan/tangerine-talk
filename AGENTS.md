@@ -1,0 +1,273 @@
+# AGENTS.md — Tangerine Talk
+
+> Contexto para agentes de código (OpenCode e outros) que forem continuar este projeto.
+> **Idioma de trabalho: português do Brasil.** Responda sempre em pt-BR.
+> Todos os caminhos aqui são **relativos à raiz do projeto** — ele pode ser movido de pasta sem quebrar nada.
+
+---
+
+## 1. O que é este projeto
+
+Landing page de **Tangerine Talk**, um tutor de idiomas com IA. Hoje é um site **estático (SSG)**, sem backend, sem banco e sem autenticação: apenas a landing page, com toda a copy em **pt-BR**.
+
+**Fase atual:** landing finalizada (layout, animações, tradução pt-BR).
+**Próxima fase:** construir a aplicação de verdade (produto além da landing). Ver seção 10.
+
+---
+
+## 2. Stack e versões
+
+Versões **instaladas** (verificadas em `node_modules`):
+
+| Camada | Tecnologia | Versão |
+|---|---|---|
+| Framework | Next.js (App Router) | 14.2.15 |
+| UI | React / React DOM | 18.3.1 |
+| Linguagem | TypeScript (strict) | 5.9.3 |
+| Estilo | Tailwind CSS (v3) | 3.4.19 |
+| Animações de UI | Framer Motion | 11.18.2 |
+| Animações de scroll | GSAP + ScrollTrigger | 3.15.1 |
+| Scroll suave | Lenis | 1.3.27 |
+| Build | PostCSS / Autoprefixer | 8.5.32 / 10.6.2 |
+
+Ambiente usado: Node v20.18.2, npm 10.8.2.
+
+**Não há:** ESLint, Prettier, Jest/Vitest/Playwright, Tailwind plugins, biblioteca de estado, i18n.
+
+---
+
+## 3. Comandos
+
+```bash
+npm install        # instalar dependências
+npm run dev        # dev server em http://localhost:3000
+npm run build      # build de produção
+npm start          # servir o build
+
+npx tsc --noEmit   # única verificação automatizada disponível
+```
+
+### ⚠️ Armadilha crítica: `build` e `dev` ao mesmo tempo
+
+**Nunca rode `npm run build` com o `npm run dev` ativo no mesmo diretório.** Os dois compartilham `.next`; o build apaga o CSS do dev e o site passa a carregar **sem estilo** (o HTML pede `/_next/static/css/app/layout.css` e recebe **404**). Isso já aconteceu neste projeto e pareceu "layout quebrado".
+
+Se acontecer:
+
+```bash
+# 1. pare o dev server
+# 2. remova o .next contaminado
+rm -rf .next
+# 3. suba o dev novamente
+npm run dev
+# 4. no navegador: Ctrl+Shift+R
+```
+
+Para testar produção, pare o dev antes (ou use outra worktree/cópia).
+
+### Retomando o projeto em outro path
+
+```bash
+# 1. copie a pasta (node_modules e .next podem ficar de fora)
+rsync -a --exclude node_modules --exclude .next tangerine-talk/ /novo/caminho/
+
+# 2. instale e suba
+cd /novo/caminho
+npm install
+npm run dev
+```
+
+- **Nenhum caminho absoluto está no código**: o alias `@/*` e o `paths` do `tsconfig.json` são relativos à raiz. Mover a pasta não quebra imports.
+- `.next/` é regenerado no primeiro `dev` ou `build`.
+- Se for para **outra máquina**, copie também `package-lock.json` (garante as mesmas versões) e o arquivo de referência citado na seção 12.
+- Se a sessão do agente for nova, ele deve ler este `AGENTS.md` antes de qualquer alteração.
+
+---
+
+## 4. Estrutura
+
+```
+app/
+  layout.tsx            # metadata pt-BR, lang="pt-BR", Poppins via Google Fonts, globals.css
+  page.tsx              # composição da landing (LenisProvider > Navbar > sections > Footer)
+  globals.css           # tokens utilitários, keyframes, .bubble, .dot-grid, .marquee, reduced motion
+components/
+  Navbar.tsx            # header sticky, menu mobile animado
+  Hero.tsx              # headline com máscara, tilt 3D, seletor de idiomas
+  Features.tsx          # 4 cards (Fala, Escuta, Escrita, Testes)
+  Scrolly.tsx           # scrollytelling com pin do GSAP + mockups
+  Bento.tsx             # gamificação: sequência, ranking, metas, skill tree
+  Languages.tsx         # marquee de idiomas
+  CtaStats.tsx          # CTA final + stats com count-up
+  Footer.tsx
+  PillButton.tsx        # CTA com efeito magnético
+  Logo.tsx, icons.tsx
+  LenisProvider.tsx     # provider de smooth scroll
+  mockups/              # Speaking, Listening, Writing, Testing, Waveform
+lib/
+  lenis.ts              # singleton + scrollToId
+  gsap.ts               # registro do ScrollTrigger
+  ease.ts               # curvas compartilhadas
+  confetti.ts           # burst via Web Animations API
+public/
+  mascot.png            # mascote (usado no Hero e no Logo)
+  logo-full.jpg         # NÃO usado atualmente
+```
+
+Versionado no Git (`main`); `.gitignore` cobre `node_modules/`, `.next/`, `*.tsbuildinfo` e `.env*`. `.next/` e `node_modules/` são descartáveis e não devem ser versionados.
+
+---
+
+## 5. Convenções de código
+
+- **Server components por padrão.** `"use client"` só onde há hooks, eventos ou animação (13 arquivos hoje).
+- Conteúdo de listas (features, passos, cards, decks) fica em **arrays no topo do arquivo**, nunca hardcoded no JSX.
+- TypeScript `strict`; sem `any` injustificado. Alias `@/*` → raiz.
+- Tailwind **v3** com tokens em `tailwind.config.ts` (`theme.extend`). Sem CSS-in-JS.
+- Ícones são SVGs próprios em `components/icons.tsx`. Não adicionar biblioteca de ícones.
+- Imagens usam `<img>` puro (não há `next/image` no projeto).
+- Animações: **apenas `transform` e `opacity`** em loops; `will-change` com parcimônia.
+- `prefers-reduced-motion` é obrigatório em tudo que se move (CSS + `useReducedMotion` + `gsap.matchMedia`).
+- Cleanup obrigatório: remover listeners, cancelar RAF, `ctx.revert()` em todo `gsap.context`.
+- Scroll suave centralizado: use `scrollToId()` de `lib/lenis.ts`; não duplique lógica.
+- Não adicione dependências sem necessidade real. O bundle atual da home é ~191 kB de First Load JS.
+
+---
+
+## 6. Design system
+
+Tokens em `tailwind.config.ts`:
+
+```ts
+tangerine: { DEFAULT: "#FF5A0A", light: "#FF7A33", dark: "#E64A00", tint: "#FFE9DC", soft: "#FFF5EE" }
+ink: "#111111"   body: "#5C5C5C"   mist: "#F7F7F8"   line: "#EDEDED"
+
+fontFamily: Poppins, system-ui, sans-serif
+borderRadius: pill = 999px
+boxShadow: card, lift, cta
+```
+
+Classes utilitárias em `app/globals.css`:
+
+| Classe | Uso |
+|---|---|
+| `.eyebrow` | rótulo pequeno em maiúsculas |
+| `.h2` | título de seção (34px → 44px) |
+| `.hl` | destaque em laranja dentro do título |
+| `.card` | card branco com sombra |
+| `.bubble` | balão de fala com gradiente e sombra interna |
+| `.dot-grid` | fundo pontilhado |
+| `.marquee` | faixa infinita (pausa no hover) |
+| `.preserve-3d` / `.backface-hidden` | utilidades 3D |
+
+Tipografia: Poppins 400–800 via `<link>` do Google Fonts (não é `next/font`).
+
+---
+
+## 7. Decisões editoriais (pt-BR)
+
+A copy é **hardcoded em pt-BR**; não há i18n. Se for internacionalizar no futuro, centralize as strings antes (ex.: `lib/copy.ts` ou `next-intl`).
+
+Regras já aplicadas e que devem ser mantidas:
+
+- **Marca não se traduz:** "Tangerine Talk".
+- **Glossário de gamificação:** sequência (streak), selos (badges), baralho (deck), flashcards (mantido).
+- **Frases de exemplo permanecem no idioma estudado:** `Buenos días`, `こんにちは`, `¿Dónde está la estación?` etc. O que se traduz são as **glossas/explicações** ("Bom dia", "Obrigado") e os rótulos de idioma ("Espanhol", "Japonês").
+- **Flashcards** são espanhol → português. **Writing** é português → inglês.
+- **Números em pt-BR:** `toLocaleString("pt-BR")` (2.615), decimais com vírgula (4,9).
+
+---
+
+## 8. Mapa das seções
+
+| Seção | Arquivo | Efeitos |
+|---|---|---|
+| Navbar | `components/Navbar.tsx` | header sticky com sombra após scroll, menu mobile com `AnimatePresence` |
+| Hero | `components/Hero.tsx` | headline com máscara (kinetic type), tilt 3D com perspective/translateZ, parallax de camadas, pílula com `layoutId` |
+| Recursos | `components/Features.tsx` | reveal em cascata (`whileInView`) |
+| Como funciona | `components/Scrolly.tsx` | ScrollTrigger com `pin`, barra de progresso, troca de mockups, passos clicáveis |
+| Gamificação | `components/Bento.tsx` | bento grid, anel SVG (`pathLength`), confetti no clique, skill tree interativa |
+| Idiomas | `components/Languages.tsx` | marquee CSS |
+| CTA + stats | `components/CtaStats.tsx` | count-up com GSAP e locale pt-BR |
+| Footer | `components/Footer.tsx` | — |
+
+Âncoras: `#top`, `#features`, `#how-it-works`, `#gamification`, `#languages`, `#pricing`.
+**Gap conhecido:** `#pricing` aponta para a seção de CTA (`CtaStats`), não existe página/tabela de preços.
+
+---
+
+## 9. Armadilhas conhecidas
+
+1. **`build` com `dev` ativo corrompe o CSS** — ver seção 3.
+2. **`.next` é descartável.** Se algo estranho acontecer, pare o dev, `rm -rf .next` e suba de novo.
+3. **Framer Motion renderiza `opacity: 0` no SSR** para elementos com `initial`. Com JS desligado ou falha de hidratação, esses blocos ficam invisíveis. Não coloque conteúdo crítico de SEO dependente de `animate` sem fallback.
+4. **ScrollTrigger + pin** cria um `pin-spacer`; chame `ScrollTrigger.refresh()` depois de fontes/imagens e sempre reverta com `ctx.revert()`.
+5. **Strict Mode** roda efeitos duas vezes em dev — sem cleanup, triggers e listeners duplicam.
+6. **Screenshot headless com `--virtual-time-budget` não reproduz animações corretamente** (pode parecer que o hero está vazio). Valide com Chrome real via CDP ou no navegador.
+7. **Overflow:** a palavra "naturalmente." na headline a 44px cabe em 360px, mas fica no limite em 320px. Se a headline mudar, teste em 320/390px.
+8. `tsconfig.tsbuildinfo` é artefato de build; pode ser apagado.
+
+---
+
+## 10. Próxima fase: a aplicação (proposta, validar com o usuário)
+
+A landing sugere o produto. Roadmap **sugerido** — não assuma nada disso como decidido:
+
+1. **Higiene do repositório**
+   - `git init` + `.gitignore` (`node_modules/`, `.next/`, `*.tsbuildinfo`, `.env*`)
+   - README curto
+   - opcional: ESLint + Prettier (hoje não existem)
+2. **Fundação do app**
+   - separar rotas de marketing (`app/(marketing)`) das rotas do produto (`app/(app)`)
+   - shell autenticado (sidebar/topbar), tema e componentes compartilhados
+   - decidir sobre i18n (hoje hardcoded pt-BR)
+3. **Auth + onboarding**
+   - login (Auth.js ou provedor externo)
+   - escolha de idioma alvo, nível e meta diária
+4. **Núcleo de aprendizado**
+   - player de lição com as 4 habilidades (fala, escuta, escrita, testes)
+   - conversa com tutor de IA (server-side, chave nunca no cliente)
+   - pronúncia (Web Speech API ou provedor; comparar com referência)
+5. **Progresso e gamificação**
+   - XP, sequência (streak), ligas, metas
+   - repetição espaçada (SRS) para os flashcards
+   - persistência: banco (Postgres + Prisma é a opção mais direta) ou SQLite em dev
+6. **Conteúdo**
+   - currículo, árvore de habilidades, decks oficiais
+   - painel para criar decks próprios
+7. **Monetização**
+   - página de preços real (hoje `#pricing` aponta para o CTA)
+   - plano gratuito vs. assinatura
+8. **Qualidade**
+   - acessibilidade AA, performance (Core Web Vitals), analytics
+   - testes: unitários para lógica de SRS/XP e E2E dos fluxos críticos
+
+**Decisões que precisam do usuário antes de codar:** stack de backend, banco, auth, provedor de IA, estratégia de áudio/pronúncia, e se o app começa como SPA autenticada ou com onboarding sem login.
+
+---
+
+## 11. Regras para agentes
+
+- Responda em **pt-BR**; nomes de código em inglês.
+- Antes de reescrever copy, leia a seção 7 (decisões editoriais).
+- Não remova animações, degradês ou o mascote sem pedido explícito.
+- Ao mexer em layout: valide 390px e 1440px e confirme `scrollWidth === clientWidth`.
+- Rode `npx tsc --noEmit` após mudanças de código.
+- **Não rode `npm run build` com o dev ativo.**
+- Mantenha `prefers-reduced-motion`, foco visível e labels ARIA.
+- Se adicionar dependência, justifique e verifique o impacto no First Load JS.
+
+---
+
+## 12. Referências
+
+- `docs/prompt-landing-page-efeitos-premium.md` — prompt/catálogo de efeitos de movimento, 3D e estética, com a arquitetura **índice (`/lab`) + uma página por efeito (`/lab/[slug]`)**, fichas técnicas e critérios de performance. Útil para evoluir a landing ou criar o laboratório de efeitos. **Já está dentro do projeto** (cópia de `~/Downloads`).
+
+---
+
+## 13. Repositório e ambiente
+
+- **Remote:** `https://github.com/fcervan/tangerine-talk.git` (branch `main`).
+- **Path atual:** `/home/fcervan/Documentos/scoras-academy/projetos/tangerine-talk`.
+- `git push` depende de credencial HTTPS/SSH do usuário; `gh` CLI **não está instalado** nesta máquina.
+- Para conferir o estado: `git status`, `git log --oneline -5`, `npm run dev`.
+- **Nunca** versione `node_modules/`, `.next/` ou `*.tsbuildinfo` (já cobertos pelo `.gitignore`).

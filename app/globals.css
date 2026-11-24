@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+:root { color-scheme: light; }
+body {
+  background: #fff;
+  color: #111;
+  font-family: Poppins, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+::selection { background: #FFE9DC; color: #E64A00; }
+
+@layer components {
+  .eyebrow { @apply text-[12px] font-semibold uppercase tracking-[0.12em] text-tangerine; }
+  .card { @apply rounded-[24px] bg-white shadow-card; }
+  .h2 { @apply text-[34px] font-bold leading-[1.1] tracking-tight text-ink sm:text-[44px]; }
+  .hl { @apply text-tangerine; }
+}
+
+.dot-grid {
+  background-image: radial-gradient(rgba(255, 90, 10, 0.45) 1.6px, transparent 1.7px);
+  background-size: 18px 18px;
+}
+.bubble {
+  position: relative;
+  background: linear-gradient(150deg, #ffffff 0%, #fff5ee 55%, #ffe9dc 100%);
+  box-shadow: 0 18px 36px rgba(230, 74, 0, 0.28), inset 0 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -6px 14px rgba(255, 122, 51, 0.18);
+}
+.bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  left: 26px;
+  width: 18px;
+  height: 18px;
+  background: #ffe9dc;
+  border-radius: 0 0 6px 0;
+  transform: rotate(45deg);
+  box-shadow: 6px 6px 12px rgba(230, 74, 0, 0.12);
+}
+.bubble.tail-right::after { left: auto; right: 26px; }
+.preserve-3d { transform-style: preserve-3d; }
+.backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee { animation: marquee 38s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee { animation: none; }
+}
