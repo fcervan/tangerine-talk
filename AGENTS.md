@@ -266,8 +266,8 @@ A landing sugere o produto. Roadmap **sugerido** — não assuma nada disso como
 
 ## 13. Repositório e ambiente
 
-- **Remote:** `https://github.com/fcervan/tangerine-talk.git` (branch `main`).
+- **Remote:** `git@github.com:fcervan/tangerine-talk.git` (SSH; branch `main`). Equivalente HTTPS: `https://github.com/fcervan/tangerine-talk.git`.
 - **Path atual:** `/home/fcervan/Documentos/scoras-academy/projetos/tangerine-talk`.
-- `git push` depende de credencial HTTPS/SSH do usuário; `gh` CLI **não está instalado** nesta máquina.
+- `git push` usa a chave SSH `~/.ssh/id_rsa` (já autenticada como `fcervan`). HTTPS **não** tem credential helper configurado; `gh` CLI **não está instalado** nesta máquina.
 - Para conferir o estado: `git status`, `git log --oneline -5`, `npm run dev`.
 - **Nunca** versione `node_modules/`, `.next/` ou `*.tsbuildinfo` (já cobertos pelo `.gitignore`).
