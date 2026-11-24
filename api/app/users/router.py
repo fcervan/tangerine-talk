@@ -1,0 +1,198 @@
+"""Rotas de perfil, membros e convites."""
+
+from __future__ import annotations
+
+import uuid
+from datetime import timedelta
+
+from fastapi import APIRouter, HTTPException, Response, status
+from fastapi.responses import JSONResponse
+from sqlalchemy import delete, func, select, update
+
+from ..auth.cookies import clear_auth_cookies
+from ..auth.deps import CurrentUser, OwnerUser, SessionDep
+from ..auth.schemas import (
+    DeleteMeIn,
+    InviteCreated,
+    InviteIn,
+    InviteOut,
+    MemberOut,
+    MeUpdateIn,
+    PasswordChangeIn,
+    UserOut,
+)
+from ..config import settings
+from ..mail import send_invite
+from ..models import AuthSession, Invite, User
+from ..models.base import utcnow
+from ..security.passwords import hash_password, verify_password
+from ..security.tokens import hash_token, new_refresh_token
+
+router = APIRouter(tags=["users"])
+
+
+@router.get("/me", response_model=UserOut)
+async def read_me(user: CurrentUser) -> User:
+    return user
+
+
+@router.patch("/me", response_model=UserOut)
+async def update_me(payload: MeUpdateIn, user: CurrentUser, session: SessionDep) -> User:
+    if payload.name is not None:
+        user.name = payload.name.strip()
+    if payload.ui_language is not None:
+        user.ui_language = payload.ui_language
+    if payload.settings is not None:
+        user.settings = dict(payload.settings)
+    await session.commit()
+    return user
+
+
+@router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+async def change_password(
+    payload: PasswordChangeIn, user: CurrentUser, session: SessionDep
+) -> Response:
+    if not verify_password(user.password_hash, payload.current_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Senha atual incorreta."
+        )
+
+    user.password_hash = hash_password(payload.new_password)
+    # Trocar a senha encerra todas as sessões — inclusive a atual.
+    await session.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
+    await session.commit()
+
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    clear_auth_cookies(response)
+    return response
+
+
+@router.get("/me/export")
+async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
+    sessions = list(
+        await session.scalars(
+            select(AuthSession)
+            .where(AuthSession.user_id == user.id)
+            .order_by(AuthSession.created_at)
+        )
+    )
+    payload = {
+        "exported_at": utcnow().isoformat() + "Z",
+        "profile": {
+            "id": str(user.id),
+            "email": user.email,
+            "name": user.name,
+            "role": user.role,
+            "ui_language": user.ui_language,
+            "settings": user.settings,
+            "created_at": user.created_at.isoformat(),
+            "last_login_at": user.last_login_at.isoformat() if user.last_login_at else None,
+        },
+        "auth_sessions": [
+            {
+                "id": str(row.id),
+                "created_at": row.created_at.isoformat(),
+                "expires_at": row.expires_at.isoformat(),
+                "revoked_at": row.revoked_at.isoformat() if row.revoked_at else None,
+                "ip": row.ip,
+                "user_agent": row.user_agent,
+            }
+            for row in sessions
+        ],
+    }
+    return JSONResponse(
+        payload,
+        headers={"Content-Disposition": 'attachment; filename="tangerine-dados.json"'},
+    )
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_me(
+    payload: DeleteMeIn, user: CurrentUser, session: SessionDep
+) -> Response:
+    if not verify_password(user.password_hash, payload.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Senha incorreta."
+        )
+
+    if user.role == "owner":
+        others = await session.scalar(
+            select(func.count()).select_from(User).where(User.id != user.id)
+        )
+        if others:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Remova os membros da instância antes de excluir a conta do owner.",
+            )
+
+    await session.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
+    await session.execute(delete(Invite).where(Invite.created_by == user.id))
+    await session.execute(
+        update(Invite).where(Invite.accepted_by == user.id).values(accepted_by=None)
+    )
+    await session.delete(user)
+    await session.commit()
+
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    clear_auth_cookies(response)
+    return response
+
+
+@router.get("/members", response_model=list[MemberOut])
+async def list_members(owner: OwnerUser, session: SessionDep) -> list[User]:
+    return list(await session.scalars(select(User).order_by(User.created_at)))
+
+
+@router.post("/invites", response_model=InviteCreated, status_code=status.HTTP_201_CREATED)
+async def create_invite(
+    payload: InviteIn,
+    owner: OwnerUser,
+    session: SessionDep,
+) -> InviteCreated:
+    email = payload.email.lower().strip()
+
+    existing = await session.scalar(select(User).where(User.email == email))
+    if existing is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Já existe uma conta com este e-mail.",
+        )
+
+    raw_token = new_refresh_token()
+    invite = Invite(
+        email=email,
+        role="member",
+        token_hash=hash_token(raw_token),
+        expires_at=utcnow() + timedelta(days=settings.invite_ttl_days),
+        created_by=owner.id,
+    )
+    session.add(invite)
+    await session.commit()
+
+    base = settings.public_base_url.rstrip("/")
+    invite_url = f"{base}/convite/{raw_token}"
+    sent = await send_invite(email, invite_url, invite.expires_at)
+    return InviteCreated(
+        invite=InviteOut.model_validate(invite),
+        invite_url=invite_url,
+        email_sent=sent,
+    )
+
+
+@router.get("/invites", response_model=list[InviteOut])
+async def list_invites(owner: OwnerUser, session: SessionDep) -> list[Invite]:
+    return list(
+        await session.scalars(select(Invite).order_by(Invite.created_at.desc()))
+    )
+
+
+@router.delete("/invites/{invite_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def revoke_invite(
+    invite_id: uuid.UUID, owner: OwnerUser, session: SessionDep
+) -> Response:
+    invite = await session.get(Invite, invite_id)
+    if invite is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Convite não encontrado.")
+    await session.delete(invite)
+    await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
