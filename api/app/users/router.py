@@ -26,7 +26,7 @@ from ..auth.schemas import (
 from ..config import settings
 from ..i18n import exercise_mode
 from ..mail import send_invite
-from ..models import AuthSession, Invite, User
+from ..models import AuthSession, Invite, ProviderCredential, User
 from ..models.base import utcnow
 from ..security.passwords import hash_password, verify_password
 from ..security.tokens import hash_token, new_refresh_token
@@ -100,6 +100,13 @@ async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
             .order_by(AuthSession.created_at)
         )
     )
+    credentials = list(
+        await session.scalars(
+            select(ProviderCredential)
+            .where(ProviderCredential.user_id == user.id)
+            .order_by(ProviderCredential.created_at)
+        )
+    )
     payload = {
         "exported_at": utcnow().isoformat() + "Z",
         "profile": {
@@ -124,6 +131,21 @@ async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
                 "user_agent": row.user_agent,
             }
             for row in sessions
+        ],
+        # Metadados apenas: nem a chave cifrada nem a chave em claro saem daqui.
+        "provider_credentials": [
+            {
+                "provider": row.provider,
+                "key_hint": row.key_hint,
+                "base_url": row.base_url,
+                "model": row.model,
+                "is_active": row.is_active,
+                "created_at": row.created_at.isoformat(),
+                "last_tested_at": row.last_tested_at.isoformat()
+                if row.last_tested_at
+                else None,
+            }
+            for row in credentials
         ],
     }
     return JSONResponse(
@@ -152,6 +174,9 @@ async def delete_me(
             )
 
     await session.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
+    await session.execute(
+        delete(ProviderCredential).where(ProviderCredential.user_id == user.id)
+    )
     await session.execute(delete(Invite).where(Invite.created_by == user.id))
     await session.execute(
         update(Invite).where(Invite.accepted_by == user.id).values(accepted_by=None)

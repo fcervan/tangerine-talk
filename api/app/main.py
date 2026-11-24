@@ -21,6 +21,7 @@ from .auth.deps import SessionDep
 from .auth.router import router as auth_router
 from .config import settings
 from .db import dispose_engine
+from .providers.router import router as providers_router
 from .users.router import router as users_router
 
 
@@ -73,3 +74,4 @@ async def ready(session: SessionDep) -> dict[str, str]:
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(providers_router)

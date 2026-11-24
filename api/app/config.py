@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     audio_retention_days: int = 0
     offline_mode: bool = False
     ollama_base_url: str = ""
+    provider_timeout_seconds: float = 8.0
 
     @property
     def is_dev(self) -> bool:
