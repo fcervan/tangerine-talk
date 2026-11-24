@@ -12,6 +12,8 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
 COPY app ./app
+COPY alembic ./alembic
+COPY alembic.ini ./alembic.ini
 
 RUN useradd --create-home --uid 10001 appuser \
     && chown -R appuser:appuser /app
