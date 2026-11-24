@@ -292,9 +292,15 @@ Tudo que entra no Git é público. Regras:
 5. **Landing**: trocar "Preços/upgrade" por "gratuito e open source" antes de publicar?
 6. ~~BYOK~~ **Fechado e implementado na Fase 2:** chave por usuário cifrada com
    Fernet, catálogo com quatro provedores, cadeia fixa de fallback, teste de
-   conexão e modo offline. Falta o motor de lição consumir a cadeia com retry.
+   conexão e modo offline. Motor de lição consome a cadeia com retry e aviso
+   de quota (Fase 4).
 7. ~~Conteúdo~~ **Fechado e implementado na Fase 3:** MySQL é a fonte da verdade;
    seed versionado e idempotente (nunca em runtime), unidade só abre após todas
    as lições anteriores, XP creditado uma vez, glossas por `ui_language` com
    fallback pt-BR e frase sempre no idioma alvo. Qdrant segue como índice
    derivado, sem uso no MVP. Pendem decks próprios e importação.
+8. ~~Motor de lição~~ **Fechado e implementado na Fase 4:** player de lição com
+   4 habilidades (fala, escuta, escrita, testes), tutor de IA server-side
+   (chat, correção, TTS/STT) com cadeia BYOK + fallback, pronúncia via Web
+   Speech API base. Pendem: provedor TTS/STT dedicado, avaliação de pronúncia
+   comparada a referência, full-duplex.

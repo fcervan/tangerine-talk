@@ -25,9 +25,7 @@ class ProviderCredential(Base):
             "provider IN ('groq','ollama_cloud','openrouter','ollama')",
             name="ck_provider_credentials_provider",
         ),
-        UniqueConstraint(
-            "user_id", "provider", name="uq_provider_credentials_user_provider"
-        ),
+        UniqueConstraint("user_id", "provider", name="uq_provider_credentials_user_provider"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUIDBinary, primary_key=True, default=uuid7)

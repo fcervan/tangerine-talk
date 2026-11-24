@@ -296,9 +296,7 @@ async def seed_content(
     for unit_spec in UNITS:
         prerequisite = unit_spec["prerequisite"]
         if prerequisite is not None:
-            unit_by_slug[unit_spec["slug"]].prerequisite_id = unit_by_slug[
-                prerequisite
-            ].id
+            unit_by_slug[unit_spec["slug"]].prerequisite_id = unit_by_slug[prerequisite].id
     await session.flush()
 
     # 2. Lições: os itens apontam para elas.

@@ -282,11 +282,17 @@ export default function CurriculumPanel() {
               </ol>
 
               <div className="mt-5 flex flex-wrap gap-2">
+                <a
+                  href={`/lesson/${lesson.id}`}
+                  className="rounded-pill bg-tangerine px-5 py-2 text-sm font-semibold text-white transition hover:bg-tangerine-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tangerine"
+                >
+                  Iniciar lição
+                </a>
                 <button
                   type="button"
                   onClick={() => void complete()}
                   disabled={busy || lesson.status === "completed"}
-                  className="rounded-pill bg-tangerine px-5 py-2 text-sm font-semibold text-white transition hover:bg-tangerine-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tangerine disabled:opacity-60"
+                  className={buttonClass}
                 >
                   {busy ? t("curriculum.completing") : t("curriculum.complete")}
                 </button>

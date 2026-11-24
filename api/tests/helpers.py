@@ -32,9 +32,7 @@ async def make_user(
     return user
 
 
-async def login(
-    client: AsyncClient, email: str, password: str = PASSWORD
-) -> dict[str, Any]:
+async def login(client: AsyncClient, email: str, password: str = PASSWORD) -> dict[str, Any]:
     response = await client.post("/auth/login", json={"email": email, "password": password})
     assert response.status_code == 200, response.text
     data: dict[str, Any] = response.json()

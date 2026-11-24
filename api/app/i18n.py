@@ -17,9 +17,7 @@ DEFAULT_LOCALE = "pt-BR"
 AVAILABLE_UI_LOCALES: tuple[str, ...] = ("pt-BR", "en-US")
 
 # Aceita tanto a forma canônica quanto entradas como `en-us` e `zh-hans-cn`.
-_LOCALE_RE = re.compile(
-    r"^[a-zA-Z]{2,3}(?:-[a-zA-Z]{4,8})?(?:-[a-zA-Z]{2}|-[0-9]{3})?$"
-)
+_LOCALE_RE = re.compile(r"^[a-zA-Z]{2,3}(?:-[a-zA-Z]{4,8})?(?:-[a-zA-Z]{2}|-[0-9]{3})?$")
 
 
 def normalize_locale(value: str) -> str:
@@ -50,9 +48,7 @@ def base_language(locale: str) -> str:
     return locale.split("-", 1)[0].lower()
 
 
-def exercise_mode(
-    ui_language: str, target_language: str
-) -> Literal["monolingual", "bilingual"]:
+def exercise_mode(ui_language: str, target_language: str) -> Literal["monolingual", "bilingual"]:
     """Mesma base dos dois lados significa deck monolingual, sem tradução."""
 
     if base_language(ui_language) == base_language(target_language):

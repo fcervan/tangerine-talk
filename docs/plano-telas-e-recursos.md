@@ -212,8 +212,8 @@ Painel de conteúdo: unidades, lições, exercícios, itens de vocabulário, dec
 
 ### Tutor de IA
 
-- Persona consistente (mascote/tutor), conversa por texto e voz, correção inline, tradução, cenários por objetivo/nível
-- Limites por plano (mensagens/dia)
+- ✅ **Fase 4 entregue:** chat, correção estruturada, TTS/STT com cadeia BYOK + fallback, player de lição `/lesson/{id}` com 4 habilidades (fala, escuta, escrita, testes), pronúncia via Web Speech API base
+- Pendem: persona consistente, cenários/roleplay, limites por plano (mensagens/dia), feedback de fala dentro da conversa, pronúncia avançada (sílaba/fonema, IPA), provedor TTS/STT dedicado
 
 ### Currículo e conteúdo
 
@@ -243,7 +243,7 @@ Painel de conteúdo: unidades, lições, exercícios, itens de vocabulário, dec
 
 ### P0 — MVP (a landing só "fecha" com isso)
 
-Cadastro por convite · onboarding (idioma + meta) · Home · Trilha + 1 unidade real · Player com **Fala, Escuta, Escrita, Flashcards** · Resultado de lição · Tutor de IA em texto (+ voz se viável) · SRS básico · streak + XP + selos 7/30/100 · Perfil/Configurações · **Provedores de IA (BYOK)** · **Membros e convites**.
+Cadastro por convite · onboarding (idioma + meta) · Home · Trilha + 1 unidade real · ✅ **Player com Fala, Escuta, Escrita, Flashcards** · ✅ **Resultado de lição** · ✅ **Tutor de IA (chat, correção, TTS/STT, fallback BYOK)** · SRS básico · streak + XP + selos 7/30/100 · Perfil/Configurações · **Provedores de IA (BYOK)** · **Membros e convites**.
 
 ### P1 — v1 (completa a promessa visual)
 

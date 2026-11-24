@@ -133,9 +133,7 @@ async def test_convite_cria_membro(client: AsyncClient, session: AsyncSession) -
     assert me.json()["email"] == "membro@example.com"
 
 
-async def test_convite_nao_pode_ser_reutilizado(
-    client: AsyncClient, session: AsyncSession
-) -> None:
+async def test_convite_nao_pode_ser_reutilizado(client: AsyncClient, session: AsyncSession) -> None:
     await make_user(session, "owner@example.com", role="owner")
     await login(client, "owner@example.com")
 
@@ -167,9 +165,7 @@ async def test_convite_para_email_ja_cadastrado_falha(
     assert response.status_code == 409
 
 
-async def test_troca_de_senha_encerra_sessoes(
-    client: AsyncClient, session: AsyncSession
-) -> None:
+async def test_troca_de_senha_encerra_sessoes(client: AsyncClient, session: AsyncSession) -> None:
     await make_user(session, "owner@example.com", role="owner")
     await login(client, "owner@example.com")
 
@@ -213,9 +209,7 @@ async def test_exclui_propria_conta(client: AsyncClient, session: AsyncSession) 
     user = await make_user(session, "membro@example.com")
     await login(client, "membro@example.com")
 
-    response = await client.request(
-        "DELETE", "/me", json={"password": PASSWORD}
-    )
+    response = await client.request("DELETE", "/me", json={"password": PASSWORD})
 
     assert response.status_code == 204
     # Conta direto no banco: a sessão do teste ainda tem o objeto em cache.

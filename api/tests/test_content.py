@@ -79,17 +79,13 @@ async def test_concluir_licoes_desbloqueia_e_xp_nao_duplica(
     lesson_ids = [lesson["id"] for lesson in units[0]["lessons"]]
 
     for lesson_id in lesson_ids:
-        done = await client.post(
-            f"/curriculum/lessons/{lesson_id}/complete", json={"score": 90}
-        )
+        done = await client.post(f"/curriculum/lessons/{lesson_id}/complete", json={"score": 90})
         assert done.status_code == 200, done.text
         assert done.json()["xp_earned"] == 10
 
     units = await first_units(client)
     assert [unit["status"] for unit in units] == ["completed", "available"]
-    assert all(
-        lesson["status"] == "completed" for lesson in units[0]["lessons"]
-    )
+    assert all(lesson["status"] == "completed" for lesson in units[0]["lessons"])
 
     repeat = await client.post(f"/curriculum/lessons/{lesson_ids[0]}/complete", json={})
     assert repeat.json()["status"] == "already_completed"
@@ -144,9 +140,7 @@ async def test_unidade_detalha_itens_e_decks_oficiais(
     assert deck.json()["items"][0]["gloss"] == "Hello"
 
 
-async def test_progresso_e_isolado_por_usuario(
-    client: AsyncClient, session: AsyncSession
-) -> None:
+async def test_progresso_e_isolado_por_usuario(client: AsyncClient, session: AsyncSession) -> None:
     await seed_content(session)
     await prepared_user(session, "um@example.com")
     await prepared_user(session, "dois@example.com")
@@ -164,9 +158,7 @@ async def test_progresso_e_isolado_por_usuario(
     assert units[0]["status"] == "available"
 
 
-async def test_sem_idioma_alvo_e_sem_sessao(
-    client: AsyncClient, session: AsyncSession
-) -> None:
+async def test_sem_idioma_alvo_e_sem_sessao(client: AsyncClient, session: AsyncSession) -> None:
     assert (await client.get("/curriculum")).status_code == 401
 
     user = await make_user(session, "sem-alvo@example.com", role="owner")

@@ -193,7 +193,8 @@ api/
   app/i18n.py     normalização BCP-47 e modo monolingual/bilingual
   app/providers/  catálogo, criptografia de chave, fallback e rotas BYOK
   app/content/    seed versionado, esquemas e rotas de trilha/decks
-  app/models/     usuário, sessão, convite, credencial e conteúdo (UUIDv7 em BINARY(16))
+  app/tutor/      chat, correção, TTS/STT com cadeia BYOK e fallback
+  app/models/     usuário, sessão, convite, credencial, conteúdo (UUIDv7 em BINARY(16))
   app/security/   Argon2id, JWT/refresh, limite de tentativas e Fernet
   alembic/        0001 identidade · 0002 idiomas · 0003 BYOK · 0004 conteúdo
   tests/          57 testes, incluindo isolamento entre usuários
@@ -215,8 +216,8 @@ Provedores disponíveis agora (todos com transporte OpenAI-compatible):
 | Slug | Chave | Uso |
 |---|---|---|
 | `groq` | sim | chat/stream, correção estruturada e STT — primeiro da cadeia |
-| `ollama_cloud` | sim | chat/stream/correção — segundo da cadeia |
-| `openrouter` | sim | chat/stream/correção e embeddings — terceiro da cadeia |
+| `ollama_cloud` | sim | chat/stream/correção, TTS, STT — segundo da cadeia |
+| `openrouter` | sim | chat/stream/correção, embeddings, TTS, STT — terceiro da cadeia |
 | `ollama` | não | local, sem nuvem; última opção da cadeia |
 
 Endpoints (todos exigem sessão e filtram por `user_id`):
@@ -240,8 +241,23 @@ no catálogo, não vem do cliente.
 > salvas ficam ilegíveis e precisam ser cadastradas de novo. Em produção a chave é
 > obrigatória e estável. Trocar a chave mestra também invalida as credenciais.
 
-O adaptador Anthropic e a chamada de chat reutilizando a cadeia pelo motor de
-lições entram com a Fase 4.
+### Tutor de IA (Fase 4)
+
+A chave nunca sai do servidor: a cadeia BYOK é resolvida e chamada aqui.
+Em caso de falha de todos os provedores, devolvemos status/aviso para a UI.
+
+Endpoints (exigem sessão):
+
+| Rota | O que faz |
+|---|---|
+| `POST /tutor/chat` | chat livre com tutor (task: chat/feedback/correction) |
+| `POST /tutor/correct` | corrige resposta do aluno vs esperada (JSON `{correct, feedback}`) |
+| `POST /tutor/tts` | síntese de fala → base64 audio |
+| `POST /tutor/stt` | transcrição de áudio (base64) |
+| `POST /tutor/stt/upload` | transcrição via upload multipart |
+
+O player de lição (`/lesson/{id}`) consome essas rotas para exercícios de
+fala, escuta, escrita e testes, com fallback automático entre provedores.
 
 ## Documentos
 

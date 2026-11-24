@@ -11,13 +11,15 @@
 Tutor de idiomas com IA **gratuito, open source (MIT) e auto-hospedável**. A landing
 está pronta (copy hardcoded em **pt-BR**) e o backend já tem identidade e multiusuário.
 
-**Fase atual:** Fases 1, 2 e 3 concluídas — FastAPI, MySQL, migração, login por cookie
+**Fase atual:** Fases 1, 2, 3 e 4 concluídas — FastAPI, MySQL, migração, login por cookie
 `httpOnly`, refresh rotacionado, convites, papéis `owner`/`member`, perfil, exportação
 e exclusão de conta; **BYOK** com chave por usuário cifrada (Fernet), teste de conexão,
 cadeia de fallback e modo offline; **conteúdo versionado** com trilha, lições,
-exercícios, glossas por `ui_language`, decks oficiais e progresso por usuário.
+exercícios, glossas por `ui_language`, decks oficiais e progresso por usuário;
+**tutor de IA** com chat, correção, TTS/STT, player de lição com 4 habilidades e
+fallback automático entre provedores.
 57 testes passam (incluindo isolamento entre usuários).
-**Próximas fases:** motor de lição e gamificação. Ver seção 10.
+**Próximas fases:** gamificação (streak, ligas, SRS). Ver seção 10.
 
 ---
 
@@ -121,7 +123,7 @@ components/
   LocaleProvider.tsx    # useI18n(): locale, t(), setLocale()
   LocaleSwitcher.tsx    # seletor pt-BR/en-US
   LoginForm.tsx, InviteForm.tsx, OnboardingWizard.tsx, AppDashboard.tsx
-  ProvidersPanel.tsx, CurriculumPanel.tsx
+  ProvidersPanel.tsx, CurriculumPanel.tsx, LessonPlayer.tsx
   mockups/              # Speaking, Listening, Writing, Testing, Waveform
 lib/
   i18n/                 # locales/pt-BR.ts (tipa), en-US.ts, fallback pt-BR
@@ -140,6 +142,7 @@ api/
   app/models/           # User, AuthSession, Invite, ProviderCredential, conteúdo — UUIDv7 em BINARY(16)
   app/providers/        # catálogo, cadeia de fallback, teste de conexão e rotas BYOK
   app/content/          # seed versionado, esquemas e rotas de currículo/decks
+  app/tutor/            # chat, correção, TTS/STT, player de lição com 4 habilidades
   app/security/         # Argon2id, JWT/refresh, limite de login, Fernet
   alembic/versions/     # 0001 identidade · 0002 idiomas · 0003 BYOK · 0004 conteúdo
   tests/                # SQLite em memória + httpx assíncrono
@@ -261,7 +264,8 @@ Status: **Fases 0, 1, 2 e 3 concluídas**. O app tem onboarding, login, convite,
 i18n com pt-BR padrão/en-US secundário, BYOK por usuário (chave cifrada, teste
 de conexão, fallback e modo offline) e conteúdo versionado no MySQL (unidades,
 lições, exercícios, glossas por locale, decks oficiais e progresso por usuário)
-com a tela `/curriculum`. Falta o player de lição e a gamificação.
+com a tela `/curriculum` e o **player de lição `/lesson/{id}` com 4 habilidades**.
+Falta a gamificação.
 
 Roadmap **sugerido** — o que ainda não está fechado:
 
@@ -269,10 +273,10 @@ Roadmap **sugerido** — o que ainda não está fechado:
 2. ✅ **Fundação do app** — i18n em `lib/i18n` (pt-BR padrão, en-US, extensível), `lib/api.ts` com refresh automático, middleware protegendo `/app`, `/onboarding`, `/curriculum` e `/providers`
 3. ✅ **Auth e multiusuário** — backend + telas de login, convite e onboarding (idioma da interface, idioma alvo, nível, meta diária)
    - pendente: migrar a copy da landing para os dicionários (visual inalterado)
-4. **Núcleo de aprendizado — Fase 4**
+4. ✅ **Núcleo de aprendizado — Fase 4 entregue**
    - player de lição com as 4 habilidades (fala, escuta, escrita, testes), consumindo o conteúdo da Fase 3
-   - conversa com tutor de IA (server-side, chave nunca no cliente), com retry e aviso de quota na cadeia BYOK
-   - pronúncia (Web Speech API ou provedor; comparar com referência)
+   - tutor de IA (chat, correção, TTS/STT, server-side, chave nunca no cliente), com retry e aviso de quota na cadeia BYOK
+   - pronúncia via Web Speech API (base; provedor TTS/STT pendente)
 5. **Progresso e gamificação**
    - XP por lição já creditado; falta sequência (streak), ligas e metas
    - repetição espaçada (SRS) para os flashcards
@@ -284,7 +288,7 @@ Roadmap **sugerido** — o que ainda não está fechado:
 7. ✅ **Provedores de IA e multiusuário** — Fase 2 entregue
    - BYOK por usuário (Fernet), teste de conexão, cadeia `Groq → Ollama Cloud → OpenRouter → Ollama` e modo offline
    - convites por e-mail e isolamento entre membros
-   - pendente da Fase 4: o motor de lição consumir a cadeia com retry e aviso de quota
+   - motor de lição consome a cadeia com retry e aviso de quota (Fase 4)
 8. **Qualidade**
    - acessibilidade AA, performance (Core Web Vitals), analytics
    - testes: unitários para lógica de SRS/XP e E2E dos fluxos críticos

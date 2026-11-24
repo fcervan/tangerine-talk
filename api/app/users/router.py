@@ -148,9 +148,7 @@ async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
                 "model": row.model,
                 "is_active": row.is_active,
                 "created_at": row.created_at.isoformat(),
-                "last_tested_at": row.last_tested_at.isoformat()
-                if row.last_tested_at
-                else None,
+                "last_tested_at": row.last_tested_at.isoformat() if row.last_tested_at else None,
             }
             for row in credentials
         ],
@@ -170,13 +168,9 @@ async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_me(
-    payload: DeleteMeIn, user: CurrentUser, session: SessionDep
-) -> Response:
+async def delete_me(payload: DeleteMeIn, user: CurrentUser, session: SessionDep) -> Response:
     if not verify_password(user.password_hash, payload.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Senha incorreta."
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Senha incorreta.")
 
     if user.role == "owner":
         others = await session.scalar(
@@ -189,12 +183,8 @@ async def delete_me(
             )
 
     await session.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
-    await session.execute(
-        delete(ProviderCredential).where(ProviderCredential.user_id == user.id)
-    )
-    await session.execute(
-        delete(UserLessonProgress).where(UserLessonProgress.user_id == user.id)
-    )
+    await session.execute(delete(ProviderCredential).where(ProviderCredential.user_id == user.id))
+    await session.execute(delete(UserLessonProgress).where(UserLessonProgress.user_id == user.id))
     await session.execute(delete(Invite).where(Invite.created_by == user.id))
     await session.execute(
         update(Invite).where(Invite.accepted_by == user.id).values(accepted_by=None)
@@ -250,15 +240,11 @@ async def create_invite(
 
 @router.get("/invites", response_model=list[InviteOut])
 async def list_invites(owner: OwnerUser, session: SessionDep) -> list[Invite]:
-    return list(
-        await session.scalars(select(Invite).order_by(Invite.created_at.desc()))
-    )
+    return list(await session.scalars(select(Invite).order_by(Invite.created_at.desc())))
 
 
 @router.delete("/invites/{invite_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def revoke_invite(
-    invite_id: uuid.UUID, owner: OwnerUser, session: SessionDep
-) -> Response:
+async def revoke_invite(invite_id: uuid.UUID, owner: OwnerUser, session: SessionDep) -> Response:
     invite = await session.get(Invite, invite_id)
     if invite is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Convite não encontrado.")

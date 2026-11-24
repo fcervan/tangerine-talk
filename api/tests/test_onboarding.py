@@ -33,9 +33,7 @@ def test_modo_de_exercicio() -> None:
     assert base_language("zh-Hans-CN") == "zh"
 
 
-async def test_onboarding_salva_os_dois_eixos(
-    client: AsyncClient, session: AsyncSession
-) -> None:
+async def test_onboarding_salva_os_dois_eixos(client: AsyncClient, session: AsyncSession) -> None:
     await make_user(session, "pessoa@example.com")
     await login(client, "pessoa@example.com")
 
@@ -63,9 +61,7 @@ async def test_onboarding_salva_os_dois_eixos(
     assert user.target_language == "ja-JP"
 
 
-async def test_par_igual_gera_deck_monolingual(
-    client: AsyncClient, session: AsyncSession
-) -> None:
+async def test_par_igual_gera_deck_monolingual(client: AsyncClient, session: AsyncSession) -> None:
     await make_user(session, "mono@example.com")
     await login(client, "mono@example.com")
 
@@ -106,9 +102,7 @@ async def test_patch_me_troca_apenas_a_interface(
     assert data["onboarding_completed"] is True
 
 
-async def test_locale_invalido_e_rejeitado(
-    client: AsyncClient, session: AsyncSession
-) -> None:
+async def test_locale_invalido_e_rejeitado(client: AsyncClient, session: AsyncSession) -> None:
     await make_user(session, "invalido@example.com")
     await login(client, "invalido@example.com")
 
@@ -125,9 +119,7 @@ async def test_locale_invalido_e_rejeitado(
     ).status_code == 422
 
 
-async def test_export_inclui_os_novos_campos(
-    client: AsyncClient, session: AsyncSession
-) -> None:
+async def test_export_inclui_os_novos_campos(client: AsyncClient, session: AsyncSession) -> None:
     await make_user(session, "export@example.com")
     await login(client, "export@example.com")
     await client.post(

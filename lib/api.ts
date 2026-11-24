@@ -151,6 +151,26 @@ export interface CompleteResult {
   completed_at: string;
 }
 
+export interface TutorChatResult {
+  ok: boolean;
+  content: string;
+  provider: string | null;
+  model: string | null;
+  status: string;
+  message: string;
+  tried: string[];
+}
+
+export interface TutorCorrectionResult {
+  ok: boolean;
+  correct: boolean;
+  feedback: string;
+  provider: string | null;
+  model: string | null;
+  status: string;
+  message: string;
+  tried: string[];
+}
 export async function apiFetch<T>(
   path: string,
   init: RequestInit = {},

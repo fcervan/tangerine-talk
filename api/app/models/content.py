@@ -162,9 +162,7 @@ class UserLessonProgress(Base):
     """Conclusão mínima por lição — alimenta o status da trilha."""
 
     __tablename__ = "user_lesson_progress"
-    __table_args__ = (
-        UniqueConstraint("user_id", "lesson_id", name="uq_progress_user_lesson"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "lesson_id", name="uq_progress_user_lesson"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUIDBinary, primary_key=True, default=uuid7)
     user_id: Mapped[uuid.UUID] = mapped_column(

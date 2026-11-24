@@ -206,9 +206,7 @@ async def update_provider(
 
 
 @router.delete("/{provider}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_provider(
-    provider: ProviderSlug, user: CurrentUser, session: SessionDep
-) -> None:
+async def delete_provider(provider: ProviderSlug, user: CurrentUser, session: SessionDep) -> None:
     row = await _find(session, user.id, provider)
     if row is None:
         raise HTTPException(status_code=404, detail="Credencial não encontrada.")

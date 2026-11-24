@@ -19,15 +19,11 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 async def get_current_user(request: Request, session: SessionDep) -> User:
     token = request.cookies.get(ACCESS_COOKIE)
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Não autenticado."
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Não autenticado.")
 
     claims = decode_access_token(token)
     if claims is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Sessão expirada."
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sessão expirada.")
 
     try:
         user_id = uuid.UUID(str(claims.get("sub")))
@@ -38,9 +34,7 @@ async def get_current_user(request: Request, session: SessionDep) -> User:
 
     user = await session.get(User, user_id)
     if user is None or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Sessão inválida."
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sessão inválida.")
     return user
 
 

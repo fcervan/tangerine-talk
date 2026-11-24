@@ -20,15 +20,11 @@ SECRET = "gsk_chave_super_secreta_1234567890"
 HINT = "gsk…7890"
 
 
-async def test_criar_e_listar_sem_expor_chave(
-    client: AsyncClient, session: AsyncSession
-) -> None:
+async def test_criar_e_listar_sem_expor_chave(client: AsyncClient, session: AsyncSession) -> None:
     await make_user(session, "owner@example.com", role="owner")
     await login(client, "owner@example.com")
 
-    created = await client.post(
-        "/me/providers", json={"provider": "groq", "api_key": SECRET}
-    )
+    created = await client.post("/me/providers", json={"provider": "groq", "api_key": SECRET})
     assert created.status_code == 201, created.text
     data = created.json()
     assert data["provider"] == "groq"
@@ -113,9 +109,7 @@ async def test_atualizar_e_remover(client: AsyncClient, session: AsyncSession) -
     assert (await client.get("/me/providers")).json()["items"] == []
 
 
-async def test_isolamento_entre_usuarios(
-    client: AsyncClient, session: AsyncSession
-) -> None:
+async def test_isolamento_entre_usuarios(client: AsyncClient, session: AsyncSession) -> None:
     await make_user(session, "alice@example.com", role="owner")
     await make_user(session, "bob@example.com")
     await login(client, "alice@example.com")
@@ -178,9 +172,16 @@ async def test_fallback_e_modo_offline(
     embedding = (await client.get("/me/providers/route?task=embedding")).json()
     assert [item["provider"] for item in embedding["chain"]] == ["openrouter", "ollama"]
     stt = (await client.get("/me/providers/route?task=stt")).json()
-    assert [item["provider"] for item in stt["chain"]] == ["groq"]
+    assert [item["provider"] for item in stt["chain"]] == [
+        "groq",
+        "ollama_cloud",
+        "openrouter",
+    ]
     tts = (await client.get("/me/providers/route?task=tts")).json()
-    assert tts["chain"] == []
+    assert [item["provider"] for item in tts["chain"]] == [
+        "ollama_cloud",
+        "openrouter",
+    ]
 
     monkeypatch.setattr(settings, "offline_mode", True)
     offline = (await client.get("/me/providers/route?task=chat")).json()

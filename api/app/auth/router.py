@@ -178,9 +178,7 @@ async def register(
 
     existing = await session.scalar(select(User).where(User.email == invite.email))
     if existing is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Esta conta já existe."
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta conta já existe.")
 
     user = User(
         email=invite.email,

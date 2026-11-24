@@ -45,9 +45,7 @@ async def send_invite(to_email: str, invite_url: str, expires_at: datetime) -> b
         "Se você não esperava este convite, ignore esta mensagem."
     )
     try:
-        await asyncio.to_thread(
-            _send_sync, to_email, "Convite para o Tangerine Talk", body
-        )
+        await asyncio.to_thread(_send_sync, to_email, "Convite para o Tangerine Talk", body)
     except (OSError, smtplib.SMTPException) as exc:
         print(f"AVISO: falha ao enviar convite por e-mail: {exc}", file=sys.stderr)
         return False

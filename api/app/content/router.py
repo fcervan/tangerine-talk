@@ -170,9 +170,7 @@ def _unit_statuses(
     for unit in units:
         lesson_ids = [lesson.id for lesson in lessons_by_unit.get(unit.id, [])]
         finished = bool(lesson_ids) and all(lesson_id in completed for lesson_id in lesson_ids)
-        prerequisite_ok = (
-            unit.prerequisite_id is None or unit.prerequisite_id in done_units
-        )
+        prerequisite_ok = unit.prerequisite_id is None or unit.prerequisite_id in done_units
         if finished:
             result[unit.id] = "completed"
             done_units.add(unit.id)
@@ -217,9 +215,7 @@ async def _exercise_counts(
 
 
 @router.get("/curriculum/languages", response_model=CurriculumLanguagesOut)
-async def curriculum_languages(
-    user: CurrentUser, session: SessionDep
-) -> CurriculumLanguagesOut:
+async def curriculum_languages(user: CurrentUser, session: SessionDep) -> CurriculumLanguagesOut:
     """Idiomas que têm conteúdo publicado — a lista cresce com o seed."""
     rows = await session.scalars(
         select(Unit.target_language)
@@ -298,9 +294,7 @@ async def _load_lesson(
     all_lessons = (
         list(
             await session.scalars(
-                select(Lesson).where(
-                    Lesson.unit_id.in_(unit_ids), Lesson.is_published.is_(True)
-                )
+                select(Lesson).where(Lesson.unit_id.in_(unit_ids), Lesson.is_published.is_(True))
             )
         )
         if unit_ids
@@ -317,9 +311,7 @@ async def _load_lesson(
 
 @router.get("/curriculum/units/{unit_id}", response_model=UnitDetailOut)
 async def unit_detail(unit_id: uuid.UUID, user: CurrentUser, session: SessionDep) -> UnitDetailOut:
-    unit = await session.scalar(
-        select(Unit).where(Unit.id == unit_id, Unit.is_published.is_(True))
-    )
+    unit = await session.scalar(select(Unit).where(Unit.id == unit_id, Unit.is_published.is_(True)))
     if unit is None:
         raise HTTPException(status_code=404, detail="Unidade não encontrada.")
 
@@ -335,9 +327,7 @@ async def unit_detail(unit_id: uuid.UUID, user: CurrentUser, session: SessionDep
     all_lessons = (
         list(
             await session.scalars(
-                select(Lesson).where(
-                    Lesson.unit_id.in_(all_ids), Lesson.is_published.is_(True)
-                )
+                select(Lesson).where(Lesson.unit_id.in_(all_ids), Lesson.is_published.is_(True))
             )
         )
         if all_ids
@@ -354,9 +344,7 @@ async def unit_detail(unit_id: uuid.UUID, user: CurrentUser, session: SessionDep
     items = (
         list(
             await session.scalars(
-                select(Item)
-                .where(Item.lesson_id.in_(lesson_ids))
-                .order_by(Item.order_index)
+                select(Item).where(Item.lesson_id.in_(lesson_ids)).order_by(Item.order_index)
             )
         )
         if lesson_ids
@@ -408,9 +396,7 @@ async def lesson_detail(
     translations = await _translations(session, item_ids)
     counts = await _exercise_counts(session, [lesson.id])
     return LessonDetailOut(
-        **_lesson_out(
-            lesson, unit_status, completed, counts.get(lesson.id, 0)
-        ).model_dump(),
+        **_lesson_out(lesson, unit_status, completed, counts.get(lesson.id, 0)).model_dump(),
         items=[_item_out(item, translations, locale) for item in item_list],
         exercises=[_exercise_out(row, translations, locale) for row in exercises],
     )
@@ -496,9 +482,7 @@ async def list_decks(
 
 @router.get("/decks/{deck_id}", response_model=DeckOut)
 async def deck_detail(deck_id: uuid.UUID, user: CurrentUser, session: SessionDep) -> DeckOut:
-    deck = await session.scalar(
-        select(Deck).where(Deck.id == deck_id, Deck.is_official.is_(True))
-    )
+    deck = await session.scalar(select(Deck).where(Deck.id == deck_id, Deck.is_official.is_(True)))
     if deck is None:
         raise HTTPException(status_code=404, detail="Baralho não encontrado.")
     rows = await session.execute(
