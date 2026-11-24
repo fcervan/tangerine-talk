@@ -12,6 +12,7 @@ import json
 from fastapi import APIRouter, UploadFile
 
 from ..auth.deps import CurrentUser, SessionDep
+from ..gamification import service as gamification_service
 from ..i18n import DEFAULT_LOCALE, normalize_locale
 from ..models import User
 from ..providers.client import (
@@ -51,6 +52,8 @@ async def tutor_chat(payload: ChatIn, user: CurrentUser, session: SessionDep) ->
         temperature=payload.temperature,
         max_tokens=payload.max_tokens,
     )
+    if result.ok:
+        await gamification_service.record_conversation(session, user.id)
     return ChatOut(
         ok=result.ok,
         content=result.content,

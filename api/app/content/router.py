@@ -15,6 +15,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth.deps import CurrentUser, SessionDep
+from ..gamification import service as gamification_service
 from ..i18n import DEFAULT_LOCALE, base_language, normalize_locale
 from ..models import (
     Deck,
@@ -432,7 +433,12 @@ async def complete_lesson(
         user_id=user.id, lesson_id=lesson.id, score=payload.score, completed_at=utcnow()
     )
     session.add(progress)
+
+    # Gamificação: XP, streak, selos (antes do commit para mesma transação)
+    await gamification_service.record_lesson_completion(session, user.id, lesson.xp_reward)
+
     await session.commit()
+
     return CompleteOut(
         lesson_id=lesson.id,
         status="completed",

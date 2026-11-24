@@ -10,6 +10,14 @@ from .content import (
     Unit,
     UserLessonProgress,
 )
+from .gamification import (
+    UserBadge,
+    UserGamification,
+    UserLeagueWeek,
+    UserMission,
+    UserSRSItem,
+    UserStreakDay,
+)
 from .provider import ProviderCredential
 from .user import AuthSession, Invite, User
 
@@ -25,5 +33,11 @@ __all__ = [
     "ProviderCredential",
     "Unit",
     "User",
+    "UserBadge",
+    "UserGamification",
+    "UserLeagueWeek",
     "UserLessonProgress",
+    "UserMission",
+    "UserSRSItem",
+    "UserStreakDay",
 ]

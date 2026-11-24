@@ -22,6 +22,7 @@ from .auth.router import router as auth_router
 from .config import settings
 from .content.router import router as content_router
 from .db import dispose_engine
+from .gamification.router import router as gamification_router
 from .providers.router import router as providers_router
 from .tutor.router import router as tutor_router
 from .users.router import router as users_router
@@ -78,4 +79,5 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(providers_router)
 app.include_router(content_router)
+app.include_router(gamification_router)
 app.include_router(tutor_router)
