@@ -2,7 +2,7 @@
 
 > Documento técnico em nível de **decisão**, não de implementação.
 > Complementa `docs/plano-telas-e-recursos.md` (produto) — este cobre stack, serviços e implicações.
-> Status: decisões fechadas em 2026-11; execução em andamento (Fase 0 concluída).
+> Status: decisões fechadas em 2026-11; execução em andamento (Fases 0 e 1 concluídas).
 
 ## Decisões tomadas
 
@@ -71,7 +71,7 @@ Portas no host: `3110` web, `8010` api, `127.0.0.1:3310` mysql (evita conflito c
 | Validação/config | Pydantic v2 + pydantic-settings |
 | ORM | SQLAlchemy 2.0 **async** + **asyncmy** |
 | Migrations | Alembic (`batch_alter_table` obrigatório no MySQL) |
-| Auth | fastapi-users ou JWT próprio (access curto + refresh em cookie `httpOnly`) |
+| Auth | próprio: Argon2id + JWT curto + refresh opaco rotacionado em cookie `httpOnly` (Fase 1) |
 | Filas | ARQ (Redis) |
 | Rate limit | slowapi + Redis |
 | Streaming LLM | SSE (`StreamingResponse`) |
@@ -80,6 +80,23 @@ Portas no host: `3110` web, `8010` api, `127.0.0.1:3310` mysql (evita conflito c
 **Regra**: monolito modular (`auth/`, `users/`, `providers/`, `content/`, `learning/`, `srs/`, `tutor/`, `gamification/`, `search/`). Não microserviços. **Não existe módulo de billing.**
 
 O FastAPI é o **único** dono da identidade — o Next apenas repassa cookies. Não usar Auth.js em paralelo.
+
+### Identidade implementada (Fase 1)
+
+| Peça | Implementação |
+|---|---|
+| Tabelas | `users`, `auth_sessions`, `invites` (migração `0001`) |
+| Senha | Argon2id (`argon2-cffi`); verificação fictícia quando o e-mail não existe |
+| Access token | JWT HS256, 15 min, assinado com `APP_SECRET_KEY` (epoch UTC explícito) |
+| Refresh token | opaco de 48 bytes; só o SHA-256 vai ao banco; 30 dias; rotação a cada uso |
+| Cookies | `tt_access` / `tt_refresh`, `httpOnly`, `SameSite=Lax`, `Secure` fora do dev |
+| Convite | token de uso único, 7 dias, enviado por SMTP se configurado; senão o owner copia o link |
+| Papéis | `owner` (criado por CLI, sem senha padrão) e `member` (por convite) |
+| Isolamento | `GET /me` só lê o próprio usuário; endpoints de membros/convites exigem `owner` |
+| Privacidade | `GET /me/export` e `DELETE /me` com confirmação de senha; logs não registram credenciais |
+| Defesa extra | middleware de `Origin` para escrita; limite de 10 logins falhos por 15 min por IP+e-mail |
+
+Testes: 20 casos, incluindo "membro não acessa `/members`" e rotação/revogação de refresh.
 
 ---
 

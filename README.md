@@ -6,8 +6,9 @@ Você usa seus próprios tokens — de provedores gratuitos ou pagos — ou roda
 **100% offline com Ollama**. Cada pessoa da casa tem sua própria conta, seu
 próprio progresso e sua própria chave.
 
-> **Estado atual:** landing page concluída. O aplicativo está em construção,
-> começando pelo backend (`api/`) e pela infraestrutura.
+> **Estado atual:** landing concluída e **Fase 1 (identidade e multiusuário)
+> concluída**: API com login, convites, papéis `owner`/`member`, perfis e
+> migração no MySQL. As telas do app ainda não existem.
 
 ## Por que existe
 
@@ -40,8 +41,36 @@ npm run dev     # http://localhost:3000
 ```bash
 cp .env.example .env          # preencha as senhas e APP_SECRET_KEY
 docker compose up -d --build  # api em :8010, mysql em 127.0.0.1:3310
-curl http://localhost:8010/health
+docker compose exec api alembic upgrade head
+docker compose exec api python -m app.cli create-owner \
+  --email voce@exemplo.com --name "Seu Nome" --generate
+curl http://localhost:8010/ready
 ```
+
+O `--generate` cria e mostra a senha **uma única vez**. Sem ele, o comando pede
+a senha no terminal. Não existe usuário nem senha padrão.
+
+Convites para outras pessoas da casa:
+
+```bash
+docker compose exec api python -m app.cli invite --email pessoa@exemplo.com
+```
+
+Sem SMTP configurado, o link aparece no terminal para você enviar manualmente.
+Com SMTP, o owner também pode gerar convites por `POST /invites`.
+
+### Identidade e multiusuário
+
+- `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `POST /auth/register`
+- `GET /me`, `PATCH /me`, `POST /me/password`, `GET /me/export`, `DELETE /me`
+- `GET /members`, `POST /invites`, `GET /invites`, `DELETE /invites/{id}` (só owner)
+
+AccessToken JWT curto (15 min) e refresh opaco (30 dias), ambos em cookies
+`httpOnly` + `SameSite=Lax` + `Secure` fora do dev. O refresh é **rotacionado** a
+cada uso e revogado no logout. Trocar a senha encerra todas as sessões.
+
+O front encaminha `/api/*` para a API (`next.config.mjs`), então o navegador
+fala sempre com a mesma origem — sem CORS e sem token em `localStorage`.
 
 ### Front em container
 
@@ -67,7 +96,13 @@ cd api && uv run ruff check . && uv run mypy app
 app/              rotas Next (landing)
 components/       componentes da landing
 lib/              utilitários do front
-api/              backend FastAPI (app/, tests/)
+api/
+  app/auth/       login, refresh, logout, convites, cookies e dependências
+  app/users/      perfil, membros, convites, exportação e exclusão
+  app/models/     usuário, sessão e convite (UUIDv7 em BINARY(16))
+  app/security/   Argon2id, JWT/refresh e limite de tentativas
+  alembic/        migrações (0001 cria users/auth_sessions/invites)
+  tests/          20 testes, incluindo isolamento entre usuários
 docs/             produto, arquitetura, referências, catálogo de efeitos
 public/           mascote
 docker-compose.yml

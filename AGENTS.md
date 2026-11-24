@@ -8,10 +8,13 @@
 
 ## 1. O que é este projeto
 
-Landing page de **Tangerine Talk**, um tutor de idiomas com IA. Hoje é um site **estático (SSG)**, sem backend, sem banco e sem autenticação: apenas a landing page, com toda a copy em **pt-BR**.
+Tutor de idiomas com IA **gratuito, open source (MIT) e auto-hospedável**. A landing
+está pronta (copy hardcoded em **pt-BR**) e o backend já tem identidade e multiusuário.
 
-**Fase atual:** landing finalizada (layout, animações, tradução pt-BR).
-**Próxima fase:** construir a aplicação de verdade (produto além da landing). Ver seção 10.
+**Fase atual:** Fase 1 concluída — FastAPI, MySQL, migração, login por cookie `httpOnly`,
+refresh rotacionado, convites, papéis `owner`/`member`, perfil, exportação e exclusão
+de conta. 20 testes passam (incluindo isolamento entre usuários).
+**Próximas fases:** provedores BYOK, conteúdo/trilha e motor de lição. Ver seção 10.
 
 ---
 
@@ -44,7 +47,14 @@ npm run dev        # dev server em http://localhost:3000
 npm run build      # build de produção
 npm start          # servir o build
 
-npx tsc --noEmit   # única verificação automatizada disponível
+npx tsc --noEmit                              # front
+
+cd api
+uv sync                                        # instala o backend
+uv run pytest -q                               # 20 testes
+uv run ruff check . && uv run mypy app
+uv run alembic upgrade head                    # aplica migrações no MySQL
+uv run python -m app.cli create-owner --help   # bootstrap do owner
 ```
 
 ### ⚠️ Armadilha crítica: `build` e `dev` ao mesmo tempo
@@ -111,9 +121,18 @@ lib/
 public/
   mascot.png            # mascote (usado no Hero e no Logo)
   logo-full.jpg         # NÃO usado atualmente
+api/
+  app/auth/             # login, refresh, logout, cookies, deps e convites
+  app/users/            # perfil, membros, convites, export e exclusão
+  app/models/           # User, AuthSession, Invite — UUIDv7 em BINARY(16)
+  app/security/         # Argon2id, JWT/refresh, limite de login
+  alembic/versions/     # 0001_initial.py
+  tests/                # SQLite em memória + httpx assíncrono
+docker-compose.yml      # mysql :3310, api :8010, web (profile) :3110
+next.config.mjs         # rewrite /api/* → FastAPI
 ```
 
-Versionado no Git (`main`); `.gitignore` cobre `node_modules/`, `.next/`, `*.tsbuildinfo` e `.env*`. `.next/` e `node_modules/` são descartáveis e não devem ser versionados.
+Versionado no Git (`main`); `.gitignore` cobre `node_modules/`, `.next/`, `*.tsbuildinfo`, `.env`, dumps, áudios e volumes. `.next/` e `node_modules/` são descartáveis e não devem ser versionados.
 
 ---
 
@@ -214,19 +233,17 @@ A landing sugere o produto. Escopo de telas/recursos em `docs/plano-telas-e-recu
 
 **Stack já decidida (2026-11):** front Next.js separado do backend **FastAPI**, tudo em **Docker**; banco **MySQL**; vetorial **Qdrant**; cache/fila **Redis**; LLM com fallback Groq → Ollama Cloud → OpenRouter.
 
+Status: **Fase 0 (higiene/esqueleto) e Fase 1 (identidade) concluídas**.
+
 Roadmap **sugerido** — o que ainda não está fechado:
 
-1. **Higiene do repositório**
-   - `git init` + `.gitignore` (`node_modules/`, `.next/`, `*.tsbuildinfo`, `.env*`)
-   - README curto
-   - opcional: ESLint + Prettier (hoje não existem)
+1. ✅ **Higiene do repositório** — licença MIT, SECURITY/CONTRIBUTING/CODE_OF_CONDUCT, `.gitignore`, gitleaks no CI
 2. **Fundação do app**
    - separar rotas de marketing (`app/(marketing)`) das rotas do produto (`app/(app)`)
    - shell autenticado (sidebar/topbar), tema e componentes compartilhados
    - decidir sobre i18n (hoje hardcoded pt-BR)
-3. **Auth + onboarding**
-   - login (identidade no FastAPI; cookie `httpOnly`)
-   - escolha de idioma alvo, nível e meta diária
+3. ✅ **Auth e multiusuário (backend)** — cookie `httpOnly`, refresh rotacionado, convite, papéis, perfil, export/exclusão, teste de isolamento
+   - pendente: **onboarding** (idioma alvo, nível, meta diária) e telas de login/convite no Next
 4. **Núcleo de aprendizado**
    - player de lição com as 4 habilidades (fala, escuta, escrita, testes)
    - conversa com tutor de IA (server-side, chave nunca no cliente)
