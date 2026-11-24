@@ -223,7 +223,7 @@ Painel de conteúdo: unidades, lições, exercícios, itens de vocabulário, dec
 
 ### Gamificação
 
-- XP, streak + calendário + maior sequência, selos (7/30/100 dias; 1/25/50 conversas), ligas semanais, metas diárias, missões
+- ✅ **Fase 5 entregue:** XP, streak (SM-2 + selos 7/30/100 dias), SRS (SM-2), ligas semanais (Bronze→Silver→Gold→Diamond), missões diárias (7 tipos), endpoints completos (`/gamification`, `/streak`, `/badges`, `/srs/due`, `/srs/review`, `/missions`, `/league/*`, `/leaderboard`), selos (first_lesson, first_deck, streak_7/30/100, conversations_1/25/50, week_league_win)
 - Proteção de sequência / congelamento (não prometido — decisão)
 - Níveis/patamares de XP (não prometido — decisão)
 
@@ -243,7 +243,7 @@ Painel de conteúdo: unidades, lições, exercícios, itens de vocabulário, dec
 
 ### P0 — MVP (a landing só "fecha" com isso)
 
-Cadastro por convite · onboarding (idioma + meta) · Home · Trilha + 1 unidade real · ✅ **Player com Fala, Escuta, Escrita, Flashcards** · ✅ **Resultado de lição** · ✅ **Tutor de IA (chat, correção, TTS/STT, fallback BYOK)** · SRS básico · streak + XP + selos 7/30/100 · Perfil/Configurações · **Provedores de IA (BYOK)** · **Membros e convites**.
+Cadastro por convite · onboarding (idioma + meta) · Home · Trilha + 1 unidade real · ✅ **Player com Fala, Escuta, Escrita, Flashcards** · ✅ **Resultado de lição** · ✅ **Tutor de IA (chat, correção, TTS/STT, fallback BYOK)** · ✅ **SRS básico (SM-2) · streak + XP + selos 7/30/100 · ligas + missões** · Perfil/Configurações · **Provedores de IA (BYOK)** · **Membros e convites**.
 
 ### P1 — v1 (completa a promessa visual)
 

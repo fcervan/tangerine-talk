@@ -304,3 +304,9 @@ Tudo que entra no Git é público. Regras:
    (chat, correção, TTS/STT) com cadeia BYOK + fallback, pronúncia via Web
    Speech API base. Pendem: provedor TTS/STT dedicado, avaliação de pronúncia
    comparada a referência, full-duplex.
+9. ~~Gamificação~~ **Fechado e implementado na Fase 5:** XP, streak (SM-2 + selos
+   7/30/100), SRS (SM-2), ligas semanais (Bronze→Silver→Gold→Diamond com
+   promoção/rebaixamento), missões diárias (7 tipos). Endpoints completos:
+   `/gamification`, `/streak`, `/badges`, `/srs/due`, `/srs/review`, `/missions`,
+   `/league/current`, `/league/history`, `/leaderboard`. Selos: first_lesson,
+   first_deck, streak_7/30/100, conversations_1/25/50, week_league_win.

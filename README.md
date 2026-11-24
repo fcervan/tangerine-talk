@@ -259,6 +259,27 @@ Endpoints (exigem sessão):
 O player de lição (`/lesson/{id}`) consome essas rotas para exercícios de
 fala, escuta, escrita e testes, com fallback automático entre provedores.
 
+### Gamificação (Fase 5)
+
+XP, streak, SRS, selos, ligas semanais e missões diárias.
+
+Endpoints (exigem sessão):
+
+| Rota | O que faz |
+|---|---|
+| `GET /gamification` | resumo completo (XP, level, streak, badges, liga, missões) |
+| `GET /gamification/streak` | histórico de streak (últimos N dias) |
+| `GET /gamification/badges` | selos conquistados |
+| `GET /gamification/srs/due` | itens vencidos para revisão (SRS) |
+| `POST /gamification/srs/review` | registra revisão de item (qualidade 0-5) |
+| `GET /gamification/missions` | missões do dia |
+| `GET /gamification/league/current` | status da liga semanal atual |
+| `GET /gamification/league/history` | histórico de ligas |
+| `GET /gamification/leaderboard` | ranking da liga (top 50) |
+
+Selos: `first_lesson`, `first_deck`, `streak_7/30/100`, `conversations_1/25/50`, `week_league_win`.
+SRS usa algoritmo SM-2 simplificado. Liga semanal: Bronze → Silver → Gold → Diamond, com promoção/rebaixamento automático.
+
 ## Documentos
 
 | Arquivo | Conteúdo |

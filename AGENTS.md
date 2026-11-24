@@ -11,15 +11,16 @@
 Tutor de idiomas com IA **gratuito, open source (MIT) e auto-hospedável**. A landing
 está pronta (copy hardcoded em **pt-BR**) e o backend já tem identidade e multiusuário.
 
-**Fase atual:** Fases 1, 2, 3 e 4 concluídas — FastAPI, MySQL, migração, login por cookie
+**Fase atual:** Fases 1, 2, 3, 4 e 5 concluídas — FastAPI, MySQL, migração, login por cookie
 `httpOnly`, refresh rotacionado, convites, papéis `owner`/`member`, perfil, exportação
 e exclusão de conta; **BYOK** com chave por usuário cifrada (Fernet), teste de conexão,
 cadeia de fallback e modo offline; **conteúdo versionado** com trilha, lições,
 exercícios, glossas por `ui_language`, decks oficiais e progresso por usuário;
 **tutor de IA** com chat, correção, TTS/STT, player de lição com 4 habilidades e
-fallback automático entre provedores.
+fallback automático entre provedores; **gamificação** com XP, streak, SRS (SM-2),
+selos, ligas semanais e missões diárias.
 57 testes passam (incluindo isolamento entre usuários).
-**Próximas fases:** gamificação (streak, ligas, SRS). Ver seção 10.
+**Próximas fases:** conteúdo expandido, Qdrant, qualidade. Ver seção 10.
 
 ---
 
@@ -265,7 +266,7 @@ i18n com pt-BR padrão/en-US secundário, BYOK por usuário (chave cifrada, test
 de conexão, fallback e modo offline) e conteúdo versionado no MySQL (unidades,
 lições, exercícios, glossas por locale, decks oficiais e progresso por usuário)
 com a tela `/curriculum` e o **player de lição `/lesson/{id}` com 4 habilidades**.
-Falta a gamificação.
+Gamificação completa: XP, streak, SRS (SM-2), selos, ligas semanais e missões.
 
 Roadmap **sugerido** — o que ainda não está fechado:
 
@@ -277,10 +278,10 @@ Roadmap **sugerido** — o que ainda não está fechado:
    - player de lição com as 4 habilidades (fala, escuta, escrita, testes), consumindo o conteúdo da Fase 3
    - tutor de IA (chat, correção, TTS/STT, server-side, chave nunca no cliente), com retry e aviso de quota na cadeia BYOK
    - pronúncia via Web Speech API (base; provedor TTS/STT pendente)
-5. **Progresso e gamificação**
-   - XP por lição já creditado; falta sequência (streak), ligas e metas
-   - repetição espaçada (SRS) para os flashcards
-   - persistência: **MySQL** (async, SQLAlchemy + Alembic) atrás do backend FastAPI
+5. ✅ **Gamificação — Fase 5 entregue**
+   - XP, streak (com selos 7/30/100), SRS (SM-2), ligas semanais (Bronze→Diamond), missões diárias
+   - endpoints: `/gamification`, `/streak`, `/badges`, `/srs/due`, `/srs/review`, `/missions`, `/league/*`, `/leaderboard`
+   - selos: first_lesson, first_deck, streak_7/30/100, conversations_1/25/50, week_league_win
 6. ✅ **Conteúdo e trilha** — Fase 3 entregue
    - seed idempotente de espanhol A1: 2 unidades, 3 lições, 10 itens, 8 exercícios e 1 deck oficial
    - pré-requisito entre unidades, glossas resolvidas pelo `ui_language`, progresso por usuário em export/exclusão
