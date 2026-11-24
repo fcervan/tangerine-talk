@@ -6,11 +6,12 @@ Você usa seus próprios tokens — de provedores gratuitos ou pagos — ou roda
 **100% offline com Ollama**. Cada pessoa da casa tem sua própria conta, seu
 próprio progresso e sua própria chave.
 
-> **Estado atual:** landing concluída e **Fases 1 e 2 concluídas**: identidade,
-> convites, papéis `owner`/`member`, onboarding e BYOK (chave por usuário,
-> criptografada, com teste de conexão e fallback). O app já tem telas de login,
-> convite, onboarding, área inicial e configuração de provedores; o motor de
-> lições ainda está em construção.
+> **Estado atual:** landing concluída e **Fases 1, 2 e 3 concluídas**: identidade,
+> convites, papéis `owner`/`member`, onboarding, BYOK (chave por usuário,
+> criptografada, com teste de conexão e fallback) e **conteúdo versionado**
+> (trilha com pré-requisitos, lições, exercícios, glossas por idioma da interface
+> e baralhos oficiais). Há telas de login, convite, onboarding, área inicial,
+> `/curriculum` e `/providers`; o player de lições com IA entra na Fase 4.
 
 ## Por que existe
 
@@ -38,8 +39,9 @@ npm install
 npm run dev     # http://localhost:3000
 ```
 
-Rotas: `/` (landing), `/login`, `/convite/{token}`, `/onboarding` e `/app`.
-As duas últimas exigem sessão; o middleware redireciona para o login.
+Rotas: `/` (landing), `/login`, `/convite/{token}`, `/onboarding`, `/app`,
+`/curriculum` e `/providers`. As quatro últimas exigem sessão; o middleware
+redireciona para o login.
 
 ### Backend + banco
 
@@ -88,9 +90,42 @@ momento do `upgrade`.
   migrações. Não é preciso informar credenciais ao projeto — elas ficam só no
   `.env` do servidor, fora do Git.
 
-Hoje o único "dado necessário" criado à mão é o owner e os convites, pela CLI.
-O currículo e os decks oficiais entram na Fase 3, também por migração/seed
-versionado.
+Além do owner e dos convites, criados pela CLI, o conteúdo oficial entra por
+seed versionado e **nunca automático** (ver "Conteúdo e trilha" abaixo).
+
+### Conteúdo e trilha (Fase 3)
+
+O conteúdo oficial é **código versionado** (`api/app/content/seed.py`), aplicado
+ao MySQL por migração (`0004`) e seed explícito — nunca em runtime, nunca por
+upload. O seed é idempotente: rodar de novo não duplica nada.
+
+```bash
+docker compose exec api python -m app.cli seed-content
+```
+
+O primeiro conteúdo é espanhol A1: 2 unidades, 3 lições, 10 itens, 8 exercícios
+e 1 deck oficial. Unidades e lições são publicadas por `is_published`; uma
+unidade só abre quando **todas** as lições da anterior foram concluídas. O XP da
+lição é creditado uma vez (reconcluir não duplica) e o progresso é por usuário.
+
+As frases ficam sempre no **idioma estudado**. As glossas são resolvidas pelo
+`ui_language` na ordem: locale exato → mesma base BCP-47 → `pt-BR` → primeiro
+disponível. Assim, a mesma lição atende interface em pt-BR ou en-US sem traduzir
+a frase avaliada.
+
+| Rota | O que faz |
+|---|---|
+| `GET /curriculum/languages` | idiomas que têm conteúdo publicado |
+| `GET /curriculum?target_language=es` | unidades, lições e status (`locked`, `available`, `completed`) |
+| `GET /curriculum/units/{id}` | detalhe da unidade (403 se bloqueada) |
+| `GET /curriculum/lessons/{id}` | itens com glosa + exercícios (403 se bloqueada) |
+| `POST /curriculum/lessons/{id}/complete` | registra conclusão e XP |
+| `GET /decks?target_language=es` | baralhos oficiais do idioma |
+| `GET /decks/{id}` | cartões com glosas no idioma da interface |
+
+O progresso de lição entra em `GET /me/export` e é apagado em `DELETE /me`.
+A tela `/curriculum` mostra a trilha, uma prévia da lição e os baralhos; o
+player completo (fala, escuta, escrita e testes com IA) é a Fase 4.
 
 ### Identidade e multiusuário
 
@@ -136,7 +171,7 @@ docker compose --profile web up -d --build   # http://localhost:3110
 
 ```bash
 npx tsc --noEmit                      # front
-cd api && uv run pytest -q            # backend (46 testes)
+cd api && uv run pytest -q            # backend (57 testes)
 cd api && uv run ruff check . && uv run mypy app
 ```
 
@@ -146,10 +181,10 @@ cd api && uv run ruff check . && uv run mypy app
 app/
   (marketing)/    landing
   (auth)/         login e convite
-  (app)/          onboarding, área autenticada (/app) e provedores (/providers)
+  (app)/          onboarding, /app, /curriculum e /providers
   layout.tsx      locale vindo do cookie + LocaleProvider
-middleware.ts     portão de UX para /app, /onboarding e /providers
-components/       landing + formulários, LocaleSwitcher, wizard e ProvidersPanel
+middleware.ts     portão de UX para /app, /onboarding, /curriculum e /providers
+components/       landing, formulários, LocaleSwitcher, wizard, Provider/CurriculumPanel
 lib/i18n/         dicionários pt-BR/en-US e resolução com fallback
 lib/api.ts        fetch same-origin com refresh automático
 api/
@@ -157,10 +192,11 @@ api/
   app/users/      perfil, onboarding, membros, convites, export e exclusão
   app/i18n.py     normalização BCP-47 e modo monolingual/bilingual
   app/providers/  catálogo, criptografia de chave, fallback e rotas BYOK
-  app/models/     usuário, sessão, convite e credencial (UUIDv7 em BINARY(16))
+  app/content/    seed versionado, esquemas e rotas de trilha/decks
+  app/models/     usuário, sessão, convite, credencial e conteúdo (UUIDv7 em BINARY(16))
   app/security/   Argon2id, JWT/refresh, limite de tentativas e Fernet
-  alembic/        0001 identidade · 0002 idiomas · 0003 credenciais BYOK
-  tests/          46 testes, incluindo isolamento entre usuários
+  alembic/        0001 identidade · 0002 idiomas · 0003 BYOK · 0004 conteúdo
+  tests/          57 testes, incluindo isolamento entre usuários
 docs/             produto, arquitetura, referências, catálogo de efeitos
 public/           mascote
 docker-compose.yml

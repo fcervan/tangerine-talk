@@ -2,7 +2,7 @@
 
 > Documento técnico em nível de **decisão**, não de implementação.
 > Complementa `docs/plano-telas-e-recursos.md` (produto) — este cobre stack, serviços e implicações.
-> Status: decisões fechadas em 2026-11; execução em andamento (Fases 0 e 1 concluídas).
+> Status: decisões fechadas em 2026-11; execução em andamento (Fases 0, 1, 2 e 3 concluídas).
 
 ## Decisões tomadas
 
@@ -293,3 +293,8 @@ Tudo que entra no Git é público. Regras:
 6. ~~BYOK~~ **Fechado e implementado na Fase 2:** chave por usuário cifrada com
    Fernet, catálogo com quatro provedores, cadeia fixa de fallback, teste de
    conexão e modo offline. Falta o motor de lição consumir a cadeia com retry.
+7. ~~Conteúdo~~ **Fechado e implementado na Fase 3:** MySQL é a fonte da verdade;
+   seed versionado e idempotente (nunca em runtime), unidade só abre após todas
+   as lições anteriores, XP creditado uma vez, glossas por `ui_language` com
+   fallback pt-BR e frase sempre no idioma alvo. Qdrant segue como índice
+   derivado, sem uso no MVP. Pendem decks próprios e importação.

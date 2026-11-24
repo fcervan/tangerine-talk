@@ -73,6 +73,84 @@ export interface ProviderTestResult {
   latency_ms: number | null;
 }
 
+export type LessonStatus = "locked" | "available" | "completed";
+
+export interface CurriculumItem {
+  id: string;
+  kind: string;
+  front_text: string;
+  example: string | null;
+  gloss: string;
+  gloss_locale: string;
+}
+
+export interface CurriculumExercise {
+  id: string;
+  type: string;
+  prompt: string;
+  answer: string;
+  options: string[] | null;
+  order_index: number;
+}
+
+export interface CurriculumLesson {
+  id: string;
+  slug: string;
+  title: string;
+  order_index: number;
+  kind: string;
+  xp_reward: number;
+  status: LessonStatus;
+  exercise_count: number;
+}
+
+export interface CurriculumLessonDetail extends CurriculumLesson {
+  items: CurriculumItem[];
+  exercises: CurriculumExercise[];
+}
+
+export interface CurriculumUnit {
+  id: string;
+  target_language: string;
+  level: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  order_index: number;
+  status: LessonStatus;
+  lessons: CurriculumLesson[];
+  items?: CurriculumItem[];
+}
+
+export interface Curriculum {
+  target_language: string;
+  level: string | null;
+  locale: string;
+  units: CurriculumUnit[];
+}
+
+export interface Deck {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  level: string;
+  item_count: number;
+  items?: CurriculumItem[];
+}
+
+export interface DeckList {
+  target_language: string;
+  decks: Deck[];
+}
+
+export interface CompleteResult {
+  lesson_id: string;
+  status: "completed" | "already_completed";
+  xp_earned: number;
+  completed_at: string;
+}
+
 export async function apiFetch<T>(
   path: string,
   init: RequestInit = {},

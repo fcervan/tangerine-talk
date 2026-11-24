@@ -5,6 +5,7 @@ com senha digitada ou gerada na hora.
 
     python -m app.cli create-owner --email voce@exemplo.com --name "Seu Nome"
     python -m app.cli invite --email pessoa@exemplo.com
+    python -m app.cli seed-content
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from datetime import timedelta
 from sqlalchemy import select
 
 from .config import settings
+from .content.seed import seed_content
 from .db import dispose_engine, get_session_factory
 from .models import Invite, User
 from .models.base import utcnow
@@ -100,6 +102,16 @@ async def _invite(email: str) -> int:
         return 0
 
 
+async def _seed_content() -> int:
+    async with get_session_factory()() as session:
+        counts = await seed_content(session)
+    if not any(counts.values()):
+        print("Conteúdo oficial já estava carregado; nada foi alterado.")
+    else:
+        print("Conteúdo criado: " + ", ".join(f"{key}={value}" for key, value in counts.items()))
+    return 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -117,6 +129,8 @@ def main() -> None:
     invite = sub.add_parser("invite", help="gera um convite por e-mail")
     invite.add_argument("--email", required=True)
 
+    sub.add_parser("seed-content", help="carrega o currículo oficial (idempotente)")
+
     args = parser.parse_args()
 
     async def run() -> int:
@@ -129,6 +143,8 @@ def main() -> None:
                 return await _create_owner(args.email, args.name, password, args.force)
             if args.command == "invite":
                 return await _invite(args.email)
+            if args.command == "seed-content":
+                return await _seed_content()
             return 2
         finally:
             await dispose_engine()

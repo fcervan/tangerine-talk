@@ -26,7 +26,7 @@ from ..auth.schemas import (
 from ..config import settings
 from ..i18n import exercise_mode
 from ..mail import send_invite
-from ..models import AuthSession, Invite, ProviderCredential, User
+from ..models import AuthSession, Invite, ProviderCredential, User, UserLessonProgress
 from ..models.base import utcnow
 from ..security.passwords import hash_password, verify_password
 from ..security.tokens import hash_token, new_refresh_token
@@ -107,6 +107,13 @@ async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
             .order_by(ProviderCredential.created_at)
         )
     )
+    progress = list(
+        await session.scalars(
+            select(UserLessonProgress)
+            .where(UserLessonProgress.user_id == user.id)
+            .order_by(UserLessonProgress.completed_at)
+        )
+    )
     payload = {
         "exported_at": utcnow().isoformat() + "Z",
         "profile": {
@@ -147,6 +154,14 @@ async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
             }
             for row in credentials
         ],
+        "lesson_progress": [
+            {
+                "lesson_id": str(row.lesson_id),
+                "score": row.score,
+                "completed_at": row.completed_at.isoformat(),
+            }
+            for row in progress
+        ],
     }
     return JSONResponse(
         payload,
@@ -176,6 +191,9 @@ async def delete_me(
     await session.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
     await session.execute(
         delete(ProviderCredential).where(ProviderCredential.user_id == user.id)
+    )
+    await session.execute(
+        delete(UserLessonProgress).where(UserLessonProgress.user_id == user.id)
     )
     await session.execute(delete(Invite).where(Invite.created_by == user.id))
     await session.execute(

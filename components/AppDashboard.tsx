@@ -114,6 +114,13 @@ export default function AppDashboard() {
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <button
           type="button"
+          onClick={() => router.push("/curriculum")}
+          className="rounded-pill bg-tangerine px-5 py-2 text-sm font-semibold text-white transition hover:bg-tangerine-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tangerine focus-visible:ring-offset-2"
+        >
+          {t("curriculum.title")}
+        </button>
+        <button
+          type="button"
           onClick={() => router.push("/onboarding")}
           className="rounded-pill border border-line px-5 py-2 text-sm font-medium text-body transition hover:border-tangerine focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tangerine"
         >

@@ -116,8 +116,9 @@
 | S1 | Perfil | nome, avatar, idioma(s), nível, meta, estatísticas |
 | S2 | Configurações | conta/senha, idioma da interface, **voz e velocidade**, notificações, acessibilidade, privacidade |
 | S3 | **Provedores de IA (BYOK)** — ✅ Fase 2 | cadastrar/testar chave, escolher modelo, capacidades, roteamento por tarefa; rota `/providers`, chave cifrada e fallback visível |
-| S4 | **Membros e convites** (owner) | listar membros, convidar por e-mail, revogar acesso |
-| S5 | Ajuda / FAQ / suporte | + reportar problema |
+| S4 | **Trilha e baralhos** — ✅ Fase 3 | unidades com pré-requisito, lições com prévia, glossas no idioma da interface, decks oficiais; rota `/curriculum` |
+| S5 | **Membros e convites** (owner) | listar membros, convidar por e-mail, revogar acesso |
+| S6 | Ajuda / FAQ / suporte | + reportar problema |
 
 **Não existe:** assinatura, plano pago, paywall ou tela de cobrança.
 
@@ -217,7 +218,8 @@ Painel de conteúdo: unidades, lições, exercícios, itens de vocabulário, dec
 ### Currículo e conteúdo
 
 - Idiomas-alvo (genéricos, qualquer BCP-47), níveis (A1…), unidades, nós, pré-requisitos, lições, itens e **glossas por locale** (fallback pt-BR)
-- Decks oficiais + criação pelo usuário + importação (a decidir)
+- ✅ **Fase 3 entregue:** seed idempotente de espanhol A1 (2 unidades, 3 lições, 10 itens, 8 exercícios, 1 deck), pré-requisito entre unidades, progresso/XP por usuário e tela `/curriculum`
+- Pendem: criação de decks pelo usuário e importação (a decidir)
 
 ### Gamificação
 
