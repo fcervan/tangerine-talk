@@ -18,10 +18,13 @@ from ..auth.schemas import (
     InviteOut,
     MemberOut,
     MeUpdateIn,
+    OnboardingIn,
+    OnboardingOut,
     PasswordChangeIn,
     UserOut,
 )
 from ..config import settings
+from ..i18n import exercise_mode
 from ..mail import send_invite
 from ..models import AuthSession, Invite, User
 from ..models.base import utcnow
@@ -46,6 +49,27 @@ async def update_me(payload: MeUpdateIn, user: CurrentUser, session: SessionDep)
         user.settings = dict(payload.settings)
     await session.commit()
     return user
+
+
+@router.post("/me/onboarding", response_model=OnboardingOut)
+async def onboarding(
+    payload: OnboardingIn, user: CurrentUser, session: SessionDep
+) -> OnboardingOut:
+    """Define os dois eixos de idioma, nível e meta. Pode ser refeito depois."""
+
+    user.ui_language = payload.ui_language
+    user.target_language = payload.target_language
+    user.settings = {
+        **user.settings,
+        "level": payload.level,
+        "daily_goal_minutes": payload.daily_goal_minutes,
+    }
+    user.onboarding_completed = True
+    await session.commit()
+
+    data = UserOut.model_validate(user).model_dump()
+    data["exercise_mode"] = exercise_mode(payload.ui_language, payload.target_language)
+    return OnboardingOut.model_validate(data)
 
 
 @router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
@@ -84,6 +108,8 @@ async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
             "name": user.name,
             "role": user.role,
             "ui_language": user.ui_language,
+            "target_language": user.target_language,
+            "onboarding_completed": user.onboarding_completed,
             "settings": user.settings,
             "created_at": user.created_at.isoformat(),
             "last_login_at": user.last_login_at.isoformat() if user.last_login_at else None,

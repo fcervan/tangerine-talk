@@ -6,9 +6,18 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
+
+from ..i18n import normalize_locale
 
 Password = Annotated[str, Field(min_length=12, max_length=128)]
+Locale = Annotated[
+    str,
+    Field(min_length=2, max_length=35),
+    AfterValidator(normalize_locale),
+]
+Level = Literal["A1", "A2", "B1", "B2", "C1", "C2"]
+ExerciseMode = Literal["monolingual", "bilingual"]
 
 
 class UserOut(BaseModel):
@@ -19,6 +28,9 @@ class UserOut(BaseModel):
     name: str
     role: Literal["owner", "member"]
     ui_language: str
+    target_language: str | None = None
+    onboarding_completed: bool = False
+    settings: dict[str, object] = Field(default_factory=dict)
     created_at: datetime
 
 
@@ -45,8 +57,20 @@ class InvitePreview(BaseModel):
 
 class MeUpdateIn(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
-    ui_language: str | None = Field(default=None, min_length=2, max_length=10)
+    # Só a interface muda por aqui. O idioma alvo é definido no onboarding.
+    ui_language: Locale | None = None
     settings: dict[str, object] | None = None
+
+
+class OnboardingIn(BaseModel):
+    ui_language: Locale
+    target_language: Locale
+    level: Level
+    daily_goal_minutes: int = Field(default=15, ge=5, le=180)
+
+
+class OnboardingOut(UserOut):
+    exercise_mode: ExerciseMode
 
 
 class PasswordChangeIn(BaseModel):

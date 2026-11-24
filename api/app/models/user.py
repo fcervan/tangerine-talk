@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, CheckConstraint, ForeignKey, String
+from sqlalchemy import JSON, Boolean, CheckConstraint, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..db import Base
@@ -22,7 +22,11 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(120))
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(16), default="member")
-    ui_language: Mapped[str] = mapped_column(String(10), default="pt-BR")
+    # BCP-47 (pt-BR, en-US, ja-JP...). Sem enum: novos locales entram como dados.
+    ui_language: Mapped[str] = mapped_column(String(35), default="pt-BR")
+    # None antes do onboarding. Pode ser igual à base da interface (deck monolingual).
+    target_language: Mapped[str | None] = mapped_column(String(35), nullable=True)
+    onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False)
     settings: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     is_active: Mapped[bool] = mapped_column(default=True)
     last_login_at: Mapped[datetime | None] = mapped_column(Timestamp, nullable=True)
