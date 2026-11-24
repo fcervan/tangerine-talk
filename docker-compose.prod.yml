@@ -1,0 +1,13 @@
+# Produção com MySQL já existente: usa apenas a API e não sobe o banco local.
+#
+#   cp .env.example .env   # DATABASE_URL aponta para o MySQL existente
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build api
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml exec api alembic upgrade head
+#
+# O schema é criado só pelas migrações Alembic. Nenhuma tabela é criada em runtime.
+name: tangerine-talk
+
+services:
+  api:
+    # Remove a dependência do serviço `mysql` do compose base.
+    depends_on: !reset {}

@@ -13,7 +13,7 @@ está pronta (copy hardcoded em **pt-BR**) e o backend já tem identidade e mult
 
 **Fase atual:** Fase 1 concluída — FastAPI, MySQL, migração, login por cookie `httpOnly`,
 refresh rotacionado, convites, papéis `owner`/`member`, perfil, exportação e exclusão
-de conta. 20 testes passam (incluindo isolamento entre usuários).
+de conta. 28 testes passam (incluindo isolamento entre usuários).
 **Próximas fases:** provedores BYOK, conteúdo/trilha e motor de lição. Ver seção 10.
 
 ---
@@ -51,7 +51,7 @@ npx tsc --noEmit                              # front
 
 cd api
 uv sync                                        # instala o backend
-uv run pytest -q                               # 20 testes
+uv run pytest -q                               # 28 testes
 uv run ruff check . && uv run mypy app
 uv run alembic upgrade head                    # aplica migrações no MySQL
 uv run python -m app.cli create-owner --help   # bootstrap do owner
@@ -97,9 +97,12 @@ npm run dev
 
 ```
 app/
-  layout.tsx            # metadata pt-BR, lang="pt-BR", Poppins via Google Fonts, globals.css
-  page.tsx              # composição da landing (LenisProvider > Navbar > sections > Footer)
+  layout.tsx            # locale do cookie, metadata i18n, Poppins, globals.css
+  (marketing)/page.tsx  # landing (LenisProvider > Navbar > sections > Footer)
+  (auth)/               # login e convite/[token]
+  (app)/                # onboarding e app (área autenticada)
   globals.css           # tokens utilitários, keyframes, .bubble, .dot-grid, .marquee, reduced motion
+middleware.ts           # portão de UX: /app e /onboarding exigem tt_access
 components/
   Navbar.tsx            # header sticky, menu mobile animado
   Hero.tsx              # headline com máscara, tilt 3D, seletor de idiomas
@@ -112,8 +115,13 @@ components/
   PillButton.tsx        # CTA com efeito magnético
   Logo.tsx, icons.tsx
   LenisProvider.tsx     # provider de smooth scroll
+  LocaleProvider.tsx    # useI18n(): locale, t(), setLocale()
+  LocaleSwitcher.tsx    # seletor pt-BR/en-US
+  LoginForm.tsx, InviteForm.tsx, OnboardingWizard.tsx, AppDashboard.tsx
   mockups/              # Speaking, Listening, Writing, Testing, Waveform
 lib/
+  i18n/                 # locales/pt-BR.ts (tipa), en-US.ts, fallback pt-BR
+  api.ts                # fetch /api/* com refresh automático
   lenis.ts              # singleton + scrollToId
   gsap.ts               # registro do ScrollTrigger
   ease.ts               # curvas compartilhadas
@@ -123,10 +131,11 @@ public/
   logo-full.jpg         # NÃO usado atualmente
 api/
   app/auth/             # login, refresh, logout, cookies, deps e convites
-  app/users/            # perfil, membros, convites, export e exclusão
+  app/users/            # perfil, onboarding, membros, convites, export e exclusão
+  app/i18n.py           # BCP-47, base do idioma, modo monolingual/bilingual
   app/models/           # User, AuthSession, Invite — UUIDv7 em BINARY(16)
   app/security/         # Argon2id, JWT/refresh, limite de login
-  alembic/versions/     # 0001_initial.py
+  alembic/versions/     # 0001 identidade · 0002 idiomas e onboarding
   tests/                # SQLite em memória + httpx assíncrono
 docker-compose.yml      # mysql :3310, api :8010, web (profile) :3110
 next.config.mjs         # rewrite /api/* → FastAPI
@@ -182,17 +191,26 @@ Tipografia: Poppins 400–800 via `<link>` do Google Fonts (não é `next/font`)
 
 ---
 
-## 7. Decisões editoriais (pt-BR)
+## 7. Idiomas e decisões editoriais
 
-A copy é **hardcoded em pt-BR**; não há i18n. Se for internacionalizar no futuro, centralize as strings antes (ex.: `lib/copy.ts` ou `next-intl`).
+**Dois eixos independentes — nunca misturar:**
 
-Regras já aplicadas e que devem ser mantidas:
+| Eixo | Campo | Quem define | Exemplo |
+|---|---|---|---|
+| Idioma da **interface** | `ui_language` | usuário (padrão `pt-BR`) | textos da home, enunciados, instruções, glossas, feedback, datas e números |
+| Idioma **estudado** | `target_language` | usuário no onboarding | a frase avaliada, que permanece no idioma alvo |
+
+A interface nasce com **pt-BR como principal** e **en-US como segundo idioma oferecido**, mas o sistema é aberto: qualquer código BCP-47 pode ser cadastrado depois (adicione um dicionário em `lib/i18n/locales/`). **Fallback técnico é sempre pt-BR**, nunca inglês. Textos em `lib/i18n/locales/*.ts`; sem texto hardcoded novo.
+
+Se `ui_language` e `target_language` tiverem a mesma base, o exercício é **monolingual** (leitura, gramática e pronúncia, sem tradução). A direção de toda tradução é `ui_language → target_language` — nunca um par fixo.
+
+Regras que continuam valendo:
 
 - **Marca não se traduz:** "Tangerine Talk".
-- **Glossário de gamificação:** sequência (streak), selos (badges), baralho (deck), flashcards (mantido).
-- **Frases de exemplo permanecem no idioma estudado:** `Buenos días`, `こんにちは`, `¿Dónde está la estación?` etc. O que se traduz são as **glossas/explicações** ("Bom dia", "Obrigado") e os rótulos de idioma ("Espanhol", "Japonês").
-- **Flashcards** são espanhol → português. **Writing** é português → inglês.
-- **Números em pt-BR:** `toLocaleString("pt-BR")` (2.615), decimais com vírgula (4,9).
+- **Glossário pt-BR:** sequência (streak), selos (badges), baralho (deck), flashcards (mantido). Em en-US: streak, badges, deck, flashcards.
+- **Frases de exemplo permanecem no idioma estudado:** `Buenos días`, `こんにちは`, `¿Dónde está la estación?`. O que se traduz são as **glossas/explicações** e os rótulos de idioma — sempre no idioma da interface.
+- Os pares "espanhol → português" e "português → inglês" dos mockups da landing são **exemplos de marketing**, não regra do motor de lição.
+- **Números/datas:** `Intl` com o locale ativo; pt-BR como padrão (2.615, 4,9).
 
 ---
 
@@ -233,17 +251,16 @@ A landing sugere o produto. Escopo de telas/recursos em `docs/plano-telas-e-recu
 
 **Stack já decidida (2026-11):** front Next.js separado do backend **FastAPI**, tudo em **Docker**; banco **MySQL**; vetorial **Qdrant**; cache/fila **Redis**; LLM com fallback Groq → Ollama Cloud → OpenRouter.
 
-Status: **Fase 0 (higiene/esqueleto) e Fase 1 (identidade) concluídas**.
+Status: **Fase 0 (higiene/esqueleto) e Fase 1 (identidade) concluídas**. O app
+tem onboarding, login e convite; i18n com pt-BR padrão, en-US secundário e
+abertura para novos locales. Falta o núcleo de aprendizado.
 
 Roadmap **sugerido** — o que ainda não está fechado:
 
 1. ✅ **Higiene do repositório** — licença MIT, SECURITY/CONTRIBUTING/CODE_OF_CONDUCT, `.gitignore`, gitleaks no CI
-2. **Fundação do app**
-   - separar rotas de marketing (`app/(marketing)`) das rotas do produto (`app/(app)`)
-   - shell autenticado (sidebar/topbar), tema e componentes compartilhados
-   - decidir sobre i18n (hoje hardcoded pt-BR)
-3. ✅ **Auth e multiusuário (backend)** — cookie `httpOnly`, refresh rotacionado, convite, papéis, perfil, export/exclusão, teste de isolamento
-   - pendente: **onboarding** (idioma alvo, nível, meta diária) e telas de login/convite no Next
+2. ✅ **Fundação do app** — i18n em `lib/i18n` (pt-BR padrão, en-US, extensível), `lib/api.ts` com refresh automático, middleware protegendo `/app` e `/onboarding`
+3. ✅ **Auth e multiusuário** — backend + telas de login, convite e onboarding (idioma da interface, idioma alvo, nível, meta diária)
+   - pendente: migrar a copy da landing para os dicionários (visual inalterado)
 4. **Núcleo de aprendizado**
    - player de lição com as 4 habilidades (fala, escuta, escrita, testes)
    - conversa com tutor de IA (server-side, chave nunca no cliente)
@@ -262,7 +279,7 @@ Roadmap **sugerido** — o que ainda não está fechado:
    - acessibilidade AA, performance (Core Web Vitals), analytics
    - testes: unitários para lógica de SRS/XP e E2E dos fluxos críticos
 
-**Decisões ainda abertas:** provedor de áudio/pronúncia (Azure vs. Speechace), push-to-talk vs. full-duplex, idiomas do lançamento, modelo de embedding (BGE-M3 vs. OpenAI), tratamento da Fala offline (sem nota vs. alinhamento local) e se o app começa como SPA autenticada ou com onboarding sem login. Detalhes em `docs/arquitetura-e-tecnologias.md` §13.
+**Decisões ainda abertas:** provedor de áudio/pronúncia (Azure vs. Speechace), push-to-talk vs. full-duplex, modelo de embedding (BGE-M3 vs. OpenAI) e tratamento da Fala offline (sem nota vs. alinhamento local). **Fechadas:** idiomas da interface (pt-BR + en-US, extensível), idioma alvo genérico, par igual = deck monolingual. Detalhes em `docs/arquitetura-e-tecnologias.md` §13.
 
 ---
 
@@ -298,3 +315,7 @@ Roadmap **sugerido** — o que ainda não está fechado:
 - Configuração pessoal fica **fora** do repositório (`.env`, chaves SSH, arquivos de segredo).
 - Antes de publicar, rode a verificação de segredos no histórico (ver `.github/workflows/ci.yml`).
 - Não faça `git add/commit/push` sem confirmação explícita do mantenedor.
+- **Tarefa final do projeto (ao concluir todas as fases):** apagar o repositório no
+  GitHub, recriá-lo vazio e subir o histórico limpo — os SHAs antigos
+  (`6be6a19`, `a93360a`) ainda são servidos por URL direta mesmo após o
+  force-push. Lembrar ao usuário na hora e pedir confirmação antes de apagar.

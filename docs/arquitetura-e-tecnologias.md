@@ -96,7 +96,26 @@ O FastAPI é o **único** dono da identidade — o Next apenas repassa cookies. 
 | Privacidade | `GET /me/export` e `DELETE /me` com confirmação de senha; logs não registram credenciais |
 | Defesa extra | middleware de `Origin` para escrita; limite de 10 logins falhos por 15 min por IP+e-mail |
 
-Testes: 20 casos, incluindo "membro não acessa `/members`" e rotação/revogação de refresh.
+Testes: 28 casos, incluindo "membro não acessa `/members`", rotação/revogação de
+refresh e isolamento do onboarding entre usuários.
+
+### Idiomas e onboarding (Fase 1)
+
+| Eixo | Campo | Regra |
+|---|---|---|
+| Interface | `ui_language` | BCP-47 em `VARCHAR(35)`; padrão `pt-BR`; `en-US` oferecido; aberto a novos locales |
+| Estudo | `target_language` | BCP-47, nullable antes do onboarding; qualquer idioma |
+| Modo | calculado | Mesma base nos dois lados ⇒ `monolingual`; senão `bilingual` |
+| Preferências | `settings` | `level` (A1–C2) e `daily_goal_minutes` (5–180) |
+| Estado | `onboarding_completed` | Booleano; o front redireciona para `/onboarding` enquanto for falso |
+
+Rotas: `POST /me/onboarding` (idempotente) e `PATCH /me` (troca **só** a interface).
+Migração `0002`. No front, `lib/i18n/` com dicionários `pt-BR` (referência de
+tipagem) e `en-US`; resolução `exato → mesma base → pt-BR`. Nenhum fallback para
+inglês. `lib/api.ts` renova o access token automaticamente ao receber 401.
+
+O middleware do Next é apenas portão de UX (`tt_access` presente); a autoridade
+continua sendo o FastAPI, que valida JWT e papéis em cada rota.
 
 ---
 
@@ -262,7 +281,7 @@ Tudo que entra no Git é público. Regras:
 ## 13. Decisões pendentes
 
 1. **Voz**: push-to-talk no MVP (recomendado) ou full-duplex já?
-2. **Idiomas de lançamento**: quantos e quais (define ASR/PA/TTS)?
+2. ~~Idiomas de lançamento~~ **Fechado:** interface pt-BR + en-US (extensível); idioma-alvo qualquer um por BCP-47. Currículo oficial entra aos poucos.
 3. **Embedding**: BGE-M3 self-hosted ou `text-embedding-3-small`?
 4. **Offline na Fala**: aceitar sem score (recomendado) ou investir em alinhamento local?
 5. **Landing**: trocar "Preços/upgrade" por "gratuito e open source" antes de publicar?

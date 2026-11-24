@@ -58,7 +58,8 @@
 
 | # | Tela | Objetivo |
 |---|---|---|
-| O1 | Boas-vindas + **idioma-alvo** | escolha entre os 50+ (lança com N) |
+| O0 | **Idioma da aplicação** | pt-BR padrão, en-US oferecido, extensível a qualquer locale |
+| O1 | Boas-vindas + **idioma-alvo** | escolha livre por código BCP-47; sem lista fechada |
 | O2 | **Objetivo** (viagem, trabalho, estudos, cultura, relacionamento) | personaliza cenários e vocabulário |
 | O3 | **Nivelamento** (teste curto, com "pular") | define ponto de partida na trilha |
 | O4 | **Meta diária** + horário do lembrete | alimenta streak, metas e notificações |
@@ -215,7 +216,7 @@ Painel de conteúdo: unidades, lições, exercícios, itens de vocabulário, dec
 
 ### Currículo e conteúdo
 
-- Idiomas-alvo (quantos no lançamento), níveis (A1…), unidades, nós, pré-requisitos, lições, itens, glossas pt-BR
+- Idiomas-alvo (genéricos, qualquer BCP-47), níveis (A1…), unidades, nós, pré-requisitos, lições, itens e **glossas por locale** (fallback pt-BR)
 - Decks oficiais + criação pelo usuário + importação (a decidir)
 
 ### Gamificação
@@ -226,7 +227,7 @@ Painel de conteúdo: unidades, lições, exercícios, itens de vocabulário, dec
 
 ### Conta e plataforma
 
-- Auth, onboarding, perfil, preferências (voz, velocidade, notificações, acessibilidade)
+- Auth, onboarding (idioma da interface + idioma-alvo + nível + meta), perfil, preferências (voz, velocidade, notificações, acessibilidade)
 - **Provedores:** chave por usuário (BYOK), criptografada, com teste de conexão e roteamento por tarefa
 - **Multiusuário:** `owner` + membros, convite por e-mail, isolamento total de dados
 - **Sem cobrança:** nenhum fluxo de assinatura, paywall ou checkout
@@ -254,8 +255,8 @@ Liga com temporadas e recompensas · notificações push · compartilhar conquis
 
 ## 6. Lacunas e decisões que precisam do usuário
 
-1. **Idiomas no lançamento:** a landing promete 50+. Quantos realmente terão currículo? (sugiro 2–3, com os outros como "em breve")
-2. **Base do curso:** pt-BR → idioma-alvo em todos, como na landing?
+1. ~~Idiomas no lançamento~~ **Fechado:** a interface nasce em pt-BR + en-US (extensível); o idioma-alvo é genérico. O currículo oficial entra aos poucos, sem travar o app.
+2. ~~Base do curso~~ **Fechado:** a direção é `ui_language → target_language`. Se as bases coincidirem, o deck é monolingual.
 3. **Tutor:** voz em tempo real ou texto primeiro com voz depois? Isso muda peso, custo e latência.
 4. **Precisão de pronúncia:** score por palavra (como o mockup) ou fonema/sílaba? O "98%" é marketing ou meta?
 5. **Liga:** ranking com usuários reais (vazio no início) ou com bots/ligas simuladas até ter base?
