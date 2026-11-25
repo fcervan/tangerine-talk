@@ -93,7 +93,7 @@ export default function CtaStats() {
               Comece sua <span className="text-white">jornada rumo à fluência</span> hoje.
             </h2>
             <p className="mt-5 max-w-md text-[16px] leading-relaxed text-white">Junte-se a milhões de pessoas praticando alguns minutos por dia com um tutor de IA que nunca se cansa das suas perguntas.</p>
-            <div className="mt-8"><PillButton variant="inverted" magnetic href="#top">Começar a aprender</PillButton></div>
+            <div className="mt-8"><PillButton variant="inverted" magnetic href="/login">Começar a aprender</PillButton></div>
           </div>
           <div className="mx-auto h-[300px] w-full max-w-[420px] lg:h-[340px]">
             <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="h-full w-full"><Illustration /></motion.div>
