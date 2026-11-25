@@ -173,10 +173,10 @@ export default function Hero() {
                       role="tab"
                       aria-selected={i === lang}
                       onClick={() => setLang(i)}
-                      className={`relative flex-1 rounded-pill px-2 py-2 text-[11px] font-semibold transition-colors duration-300 sm:text-[13px] ${i === lang ? "text-white" : "text-ink hover:text-tangerine-darker"}`}
+                      className={`relative flex-1 rounded-pill px-2 py-2 text-[11px] font-semibold transition-colors duration-300 sm:text-[13px] ${i === lang ? "text-white" : "text-ink hover:text-tangerine-dark"}`}
                     >
                       {i === lang && (
-                        <motion.span layoutId="langPill" transition={{ type: "spring", stiffness: 420, damping: 30 }} className="absolute inset-0 rounded-pill bg-tangerine-darker shadow-cta" />
+                        <motion.span layoutId="langPill" transition={{ type: "spring", stiffness: 420, damping: 30 }} className="absolute inset-0 rounded-pill bg-tangerine shadow-cta" />
                       )}
                       <span className="relative">{l.name}</span>
                     </button>

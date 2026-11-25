@@ -52,13 +52,13 @@ export default function PillButton({ children, href = "#", variant = "primary", 
       transition={{ type: "spring", stiffness: 300, damping: 18 }}
       className={`inline-flex items-center rounded-pill font-semibold ${
         md ? "gap-4 py-2 pl-7 pr-2 text-[16px]" : "gap-2 py-1.5 pl-4 pr-1.5 text-[14px]"
-      } ${primary ? "bg-tangerine-darker text-white shadow-cta" : "bg-white text-tangerine-darker shadow-lift"} ${className}`}
+      } ${primary ? "bg-tangerine text-white shadow-cta hover:bg-tangerine-dark" : "bg-white text-tangerine shadow-lift hover:text-tangerine-dark"} ${className}`}
     >
       {children}
       <motion.span
         style={{ x: six, y: siy }}
         className={`flex items-center justify-center rounded-full ${md ? "h-10 w-10" : "h-7 w-7"} ${
-          primary ? "bg-white text-tangerine-darker" : "bg-tangerine-darker text-white"
+          primary ? "bg-white text-tangerine" : "bg-tangerine text-white"
         }`}
       >
         <ArrowIcon size={md ? 20 : 15} className="" />
