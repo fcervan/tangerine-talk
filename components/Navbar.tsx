@@ -13,7 +13,7 @@ const LINKS = [
   { label: "Como funciona", href: "#how-it-works" },
   { label: "Gamificação", href: "#gamification" },
   { label: "Idiomas", href: "#languages" },
-  { label: "Preços", href: "#pricing" },
+  { label: "Começar grátis", href: "#cta" },
 ];
 
 export default function Navbar() {
@@ -48,7 +48,7 @@ export default function Navbar() {
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <PillButton size="sm" href="#pricing" className="hidden sm:inline-flex">Começar a aprender</PillButton>
+          <PillButton size="sm" href="#cta" className="hidden sm:inline-flex">Começar a aprender</PillButton>
           <button onClick={() => setOpen((o) => !o)} className="flex h-10 w-10 items-center justify-center rounded-full bg-tangerine-soft text-tangerine lg:hidden" aria-label="Menu">
             {open ? <CloseIcon /> : <MenuIcon />}
           </button>
@@ -61,7 +61,7 @@ export default function Navbar() {
               {LINKS.map((l) => (
                 <a key={l.href} href={l.href} onClick={(e) => go(e, l.href)} className="rounded-xl px-3 py-3 text-[15px] font-medium text-ink hover:bg-tangerine-soft">{l.label}</a>
               ))}
-              <PillButton size="sm" href="#pricing" className="mt-2 self-start">Começar a aprender</PillButton>
+              <PillButton size="sm" href="#cta" className="mt-2 self-start">Começar a aprender</PillButton>
             </div>
           </motion.div>
         )}

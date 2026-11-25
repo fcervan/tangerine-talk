@@ -17,10 +17,10 @@ body {
 ::selection { background: #FFE9DC; color: #E64A00; }
 
 @layer components {
-  .eyebrow { @apply text-[12px] font-semibold uppercase tracking-[0.12em] text-tangerine; }
+  .eyebrow { @apply text-[12px] font-semibold uppercase tracking-[0.12em] text-tangerine-darker; }
   .card { @apply rounded-[24px] bg-white shadow-card; }
   .h2 { @apply text-[34px] font-bold leading-[1.1] tracking-tight text-ink sm:text-[44px]; }
-  .hl { @apply text-tangerine; }
+  .hl { @apply text-tangerine-darker; }
 }
 
 .dot-grid {

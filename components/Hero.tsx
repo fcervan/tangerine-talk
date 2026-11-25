@@ -67,7 +67,7 @@ export default function Hero() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE, delay: 0.7 }} className="mt-9 flex flex-wrap items-center gap-5">
             <PillButton magnetic href="#how-it-works">Começar a aprender</PillButton>
             <div className="flex items-center gap-2 text-[14px] text-body">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-tangerine-tint text-tangerine"><CheckIcon size={14} /></span>
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-tangerine-lightBg text-tangerine-darker"><CheckIcon size={14} /></span>
               Grátis para começar · Sem cartão
             </div>
           </motion.div>
@@ -157,7 +157,7 @@ export default function Hero() {
             <motion.div style={{ z: 110 }} className="absolute bottom-[22%] left-[0%]">
               <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", delay: 1.1 }}>
                 <div className="bubble flex items-center gap-2 rounded-[20px] px-4 py-2.5">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-tangerine text-white"><CheckIcon size={14} /></span>
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-tangerine-lightBg text-tangerine-darker"><CheckIcon size={14} /></span>
                   <span className="text-[13px] font-semibold text-ink">98% de precisão</span>
                 </div>
               </motion.div>
@@ -173,10 +173,10 @@ export default function Hero() {
                       role="tab"
                       aria-selected={i === lang}
                       onClick={() => setLang(i)}
-                      className={`relative flex-1 rounded-pill px-2 py-2 text-[11px] font-semibold transition-colors duration-300 sm:text-[13px] ${i === lang ? "text-white" : "text-ink hover:text-tangerine"}`}
+                      className={`relative flex-1 rounded-pill px-2 py-2 text-[11px] font-semibold transition-colors duration-300 sm:text-[13px] ${i === lang ? "text-white" : "text-ink hover:text-tangerine-darker"}`}
                     >
                       {i === lang && (
-                        <motion.span layoutId="langPill" transition={{ type: "spring", stiffness: 420, damping: 30 }} className="absolute inset-0 rounded-pill bg-tangerine shadow-cta" />
+                        <motion.span layoutId="langPill" transition={{ type: "spring", stiffness: 420, damping: 30 }} className="absolute inset-0 rounded-pill bg-tangerine-darker shadow-cta" />
                       )}
                       <span className="relative">{l.name}</span>
                     </button>

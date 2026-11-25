@@ -39,7 +39,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <LocaleProvider initialLocale={locale}>{children}</LocaleProvider>
+        <LocaleProvider initialLocale={locale}>
+          <main id="main-content">{children}</main>
+        </LocaleProvider>
       </body>
     </html>
   );

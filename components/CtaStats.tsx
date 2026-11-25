@@ -77,7 +77,7 @@ function Illustration() {
 
 export default function CtaStats() {
   return (
-    <section id="pricing" className="bg-white px-4 pb-24 pt-8 sm:px-6">
+    <section id="cta" className="bg-white px-4 pb-24 pt-8 sm:px-6">
       <motion.div
         initial={{ opacity: 0, y: 40, scale: 0.98 }}
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -88,11 +88,11 @@ export default function CtaStats() {
         <div className="dot-grid absolute inset-0 opacity-[0.18] [mask-image:radial-gradient(circle_at_85%_20%,#000,transparent_60%)]" style={{ backgroundImage: "radial-gradient(#fff 1.6px, transparent 1.7px)" }} />
         <div className="relative grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <p className="mb-4 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/80">Plano gratuito para sempre · Faça upgrade quando quiser</p>
+            <p className="mb-4 text-[12px] font-semibold uppercase tracking-[0.12em] text-white">Grátis para sempre · Open source</p>
             <h2 className="text-[38px] font-bold leading-[1.08] tracking-tight text-ink sm:text-[54px]">
               Comece sua <span className="text-white">jornada rumo à fluência</span> hoje.
             </h2>
-            <p className="mt-5 max-w-md text-[16px] leading-relaxed text-white/90">Junte-se a milhões de pessoas praticando alguns minutos por dia com um tutor de IA que nunca se cansa das suas perguntas.</p>
+            <p className="mt-5 max-w-md text-[16px] leading-relaxed text-white">Junte-se a milhões de pessoas praticando alguns minutos por dia com um tutor de IA que nunca se cansa das suas perguntas.</p>
             <div className="mt-8"><PillButton variant="inverted" magnetic href="#top">Começar a aprender</PillButton></div>
           </div>
           <div className="mx-auto h-[300px] w-full max-w-[420px] lg:h-[340px]">
@@ -110,7 +110,7 @@ export default function CtaStats() {
       >
         {STATS.map((s, i) => (
           <div key={s.label} className={`px-6 py-8 text-center ${i % 2 === 1 ? "border-l border-line" : ""} ${i > 1 ? "border-t border-line lg:border-t-0" : ""} ${i > 0 ? "lg:border-l lg:border-line" : ""}`}>
-            <p className="text-[38px] font-bold leading-none text-tangerine"><CountUp {...s} /></p>
+            <p className="text-[38px] font-bold leading-none text-tangerine-darker"><CountUp {...s} /></p>
             <p className="mt-2 text-[13px] font-medium text-body">{s.label}</p>
           </div>
         ))}

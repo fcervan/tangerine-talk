@@ -35,7 +35,7 @@ export default function PillButton({ children, href = "#", variant = "primary", 
   const onLeave = () => { x.set(0); y.set(0); ix.set(0); iy.set(0); };
 
   const primary = variant === "primary";
-  const sm = size === "sm";
+  const md = size === "md";
 
   return (
     <motion.a
@@ -51,17 +51,17 @@ export default function PillButton({ children, href = "#", variant = "primary", 
       whileTap={{ scale: 0.96 }}
       transition={{ type: "spring", stiffness: 300, damping: 18 }}
       className={`inline-flex items-center rounded-pill font-semibold ${
-        sm ? "gap-2 py-1.5 pl-4 pr-1.5 text-[14px]" : "gap-4 py-2 pl-7 pr-2 text-[16px]"
-      } ${primary ? "bg-tangerine text-white shadow-cta" : "bg-white text-tangerine shadow-lift"} ${className}`}
+        md ? "gap-4 py-2 pl-7 pr-2 text-[16px]" : "gap-2 py-1.5 pl-4 pr-1.5 text-[14px]"
+      } ${primary ? "bg-tangerine-darker text-white shadow-cta" : "bg-white text-tangerine-darker shadow-lift"} ${className}`}
     >
       {children}
       <motion.span
         style={{ x: six, y: siy }}
-        className={`flex items-center justify-center rounded-full ${sm ? "h-7 w-7" : "h-10 w-10"} ${
-          primary ? "bg-white text-tangerine" : "bg-tangerine text-white"
+        className={`flex items-center justify-center rounded-full ${md ? "h-10 w-10" : "h-7 w-7"} ${
+          primary ? "bg-white text-tangerine-darker" : "bg-tangerine-darker text-white"
         }`}
       >
-        <ArrowIcon size={sm ? 15 : 20} className="" />
+        <ArrowIcon size={md ? 20 : 15} className="" />
       </motion.span>
     </motion.a>
   );
