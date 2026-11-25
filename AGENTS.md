@@ -262,12 +262,13 @@ A landing sugere o produto. Escopo de telas/recursos em `docs/plano-telas-e-recu
 
 **Stack já decidida (2026-11):** front Next.js separado do backend **FastAPI**, tudo em **Docker**; banco **MySQL**; vetorial **Qdrant**; cache/fila **Redis**; LLM com fallback Groq → Ollama Cloud → OpenRouter.
 
-Status: **Fases 0, 1, 2 e 3 concluídas**. O app tem onboarding, login, convite,
+Status: **Fases 0–8 concluídas**. O app tem onboarding, login, convite,
 i18n com pt-BR padrão/en-US secundário, BYOK por usuário (chave cifrada, teste
 de conexão, fallback e modo offline) e conteúdo versionado no MySQL (unidades,
 lições, exercícios, glossas por locale, decks oficiais e progresso por usuário)
 com a tela `/curriculum` e o **player de lição `/lesson/{id}` com 4 habilidades**.
 Gamificação completa: XP, streak, SRS (SM-2), selos, ligas semanais e missões.
+Acessibilidade AA (color-contrast WCAG AA: 0 violações).
 
 Roadmap **sugerido** — o que ainda não está fechado:
 
@@ -284,16 +285,57 @@ Roadmap **sugerido** — o que ainda não está fechado:
    - endpoints: `/gamification`, `/streak`, `/badges`, `/srs/due`, `/srs/review`, `/missions`, `/league/*`, `/leaderboard`
    - selos: first_lesson, first_deck, streak_7/30/100, conversations_1/25/50, week_league_win
 6. ✅ **Conteúdo e trilha** — Fase 3 entregue
-   - seed idempotente de espanhol A1: 2 unidades, 3 lições, 10 itens, 8 exercícios e 1 deck oficial
+   - seed idempotente multi-idioma (ES, EN, FR, DE, JA, KO, ZH A1-B2)
    - pré-requisito entre unidades, glossas resolvidas pelo `ui_language`, progresso por usuário em export/exclusão
    - tela `/curriculum` com prévia da lição e baralhos; pendente: painel para criar decks próprios e importação
 7. ✅ **Provedores de IA e multiusuário** — Fase 2 entregue
    - BYOK por usuário (Fernet), teste de conexão, cadeia `Groq → Ollama Cloud → OpenRouter → Ollama` e modo offline
    - convites por e-mail e isolamento entre membros
    - motor de lição consome a cadeia com retry e aviso de quota (Fase 4)
-8. **Qualidade**
-   - acessibilidade AA, performance (Core Web Vitals), analytics
-   - testes: unitários para lógica de SRS/XP e E2E dos fluxos críticos
+8. ✅ **Acessibilidade AA** — Fase 8 entregue
+   - color-contrast WCAG AA: 0 violações (era 21+)
+   - `<main>` landmark, `lang={locale}`, foco visível, labels ARIA
+   - Paleta atualizada: tangerine dark/darker/lightBg, body/bodyLight
+
+9. ⬜ **Performance & Core Web Vitals** (Fase 9)
+   - LCP < 2.5s, CLS < 0.1, INP < 200ms; bundle optimization, lazy loading, caching
+   - Analytics opt-in (LGPD-compliant)
+   - Testes E2E (Playwright): login → onboarding → lição → progresso → gamificação
+   - Testes unitários: lógica SRS/XP/streak/gamificação
+   - Migração copy landing → i18n (pt-BR/en-US)
+
+10. ⬜ **Conteúdo expandido** (Fase 10)
+    - Mais idiomas/níveis no seed (FR, DE, JA, KO, ZH A1-B2 já existem; expandir para B1-C2)
+    - Painel admin de conteúdo (owner)
+    - Importação de decks (CSV/JSON/Anki)
+    - Decks próprios do usuário (CRUD)
+
+11. ⬜ **Qdrant integração completa** (Fase 11)
+    - Worker outbox sync MySQL → Qdrant
+    - Grounding do tutor via Qdrant (busca itens/regras da lição atual)
+    - Busca híbrida (denso + esparso/BM25)
+    - Reindexação blue/green
+
+12. ⬜ **TTS/STT dedicado & Pronúncia avançada** (Fase 12)
+    - Provedor Azure/Speechace
+    - Pronúncia avançada (sílaba/fonema, IPA, score)
+    - Push-to-talk vs full-duplex
+    - Feedback de fala dentro da conversa
+
+13. ⬜ **Cenários/Roleplay & Conteúdo avançado** (Fase 13)
+    - Nivelamento (placement test)
+    - Cenários/roleplay
+    - Caderno de erros/vocabulário
+    - Progresso detalhado (precisão/tempo por habilidade)
+
+14. ⬜ **Notificações & Social** (Fase 14)
+    - Notificações push (lembrete de prática)
+    - Compartilhar conquistas
+    - Ligas com temporadas/recompensas
+
+15. ⬜ **Certificados & Avançado** (Fase 15)
+    - Certificados de conclusão
+    - Múltiplos idiomas simultâneos
 
 **Decisões ainda abertas:** provedor de áudio/pronúncia (Azure vs. Speechace), push-to-talk vs. full-duplex, modelo de embedding (BGE-M3 vs. OpenAI) e tratamento da Fala offline (sem nota vs. alinhamento local). **Fechadas:** idiomas da interface (pt-BR + en-US, extensível), idioma alvo genérico, par igual = deck monolingual. Detalhes em `docs/arquitetura-e-tecnologias.md` §13.
 

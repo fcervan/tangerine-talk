@@ -309,6 +309,44 @@ Leia o [`SECURITY.md`](./SECURITY.md). Em resumo: nenhum segredo no repositório
 chaves criptografadas em repouso, áudio descartado por padrão, sem telemetria e
 verificação de segredos no CI.
 
-## Contribuindo
+## Próximos passos (TODO / Fases 9+)
 
-Veja o [`CONTRIBUTING.md`](./CONTRIBUTING.md). Projeto licenciado sob [MIT](./LICENSE).
+| Fase | Item | Status | Prioridade |
+|------|------|--------|------------|
+| 9 | **Performance & Core Web Vitals** | ⬜ TODO | P0 |
+| 9 | LCP < 2.5s, CLS < 0.1, INP < 200ms | ⬜ TODO | P0 |
+| 9 | Bundle optimization, lazy loading, caching | ⬜ TODO | P1 |
+| 9 | **Analytics opt-in** (LGPD-compliant) | ⬜ TODO | P1 |
+| 9 | **Testes E2E** (Playwright/Cypress) fluxos críticos | ⬜ TODO | P0 |
+| 9 | Login → onboarding → lição → progresso → gamificação | ⬜ TODO | P0 |
+| 9 | **Testes unitários** lógica SRS/XP/streak/gamificação | ⬜ TODO | P1 |
+| 9 | **Migração copy landing → i18n** (pt-BR/en-US) | ⬜ TODO | P1 |
+| 10 | **Conteúdo expandido** | ⬜ TODO | P1 |
+| 10 | Mais idiomas/níveis no seed (FR, DE, JA, KO, ZH A1-B2) | ⬜ TODO | P1 |
+| 10 | Painel admin de conteúdo (owner) | ⬜ TODO | P1 |
+| 10 | Importação de decks (CSV/JSON/Anki) | ⬜ TODO | P2 |
+| 10 | Decks próprios do usuário (CRUD) | ⬜ TODO | P1 |
+| 11 | **Qdrant** (integração completa) | ⬜ TODO | P1 |
+| 11 | Worker outbox sync MySQL → Qdrant | ⬜ TODO | P1 |
+| 11 | Grounding do tutor via Qdrant | ⬜ TODO | P1 |
+| 11 | Busca híbrida (denso + esparso/BM25) | ⬜ TODO | P1 |
+| 11 | Reindexação blue/green | ⬜ TODO | P1 |
+| 12 | **TTS/STT dedicado** (Azure/Speechace) | ⬜ TODO | P2 |
+| 12 | Pronúncia avançada (sílaba/fonema, IPA) | ⬜ TODO | P2 |
+| 12 | Push-to-talk vs full-duplex | ⬜ TODO | P2 |
+| 12 | Feedback de fala dentro da conversa | ⬜ TODO | P2 |
+| 13 | **Cenários/Roleplay** | ⬜ TODO | P1 |
+| 13 | Nivelamento (placement test) | ⬜ TODO | P1 |
+| 13 | Caderno de erros/vocabulário | ⬜ TODO | P1 |
+| 13 | Progresso detalhado (precisão/tempo por habilidade) | ⬜ TODO | P1 |
+| 14 | **Notificações push** (lembrete de prática) | ⬜ TODO | P2 |
+| 14 | Compartilhar conquistas | ⬜ TODO | P2 |
+| 14 | Ligas com temporadas/recompensas | ⬜ TODO | P2 |
+| 15 | **Certificados** | ⬜ TODO | P2 |
+| 15 | Múltiplos idiomas simultâneos | ⬜ TODO | P2 |
+
+> **Legenda**: ⬜ TODO = não iniciado | 🟡 WIP = em progresso | ✅ DONE = concluído
+
+---
+
+## Segurança e privacidade
