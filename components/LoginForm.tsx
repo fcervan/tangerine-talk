@@ -89,7 +89,13 @@ export default function LoginForm({ next }: { next?: string }) {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-xs text-body">{t("login.restricted")}</p>
+      <p className="mt-6 text-center text-xs text-body">
+        {t("register.noAccount")}{" "}
+        <a href="/cadastro" className="font-medium text-tangerine hover:underline">
+          {t("register.registerLink")}
+        </a>
+      </p>
+      <p className="mt-2 text-center text-xs text-body">{t("login.restricted")}</p>
     </section>
   );
 }

@@ -205,6 +205,49 @@ async def test_exporta_dados_proprios_sem_segredos(
     assert "token_hash" not in response.text
 
 
+async def test_cadastro_publico_cria_conta_e_sessao(
+    client: AsyncClient, session: AsyncSession
+) -> None:
+    response = await client.post(
+        "/auth/register-public",
+        json={
+            "name": "Novo Usuário",
+            "email": "novo@example.com",
+            "password": "senha-publica-muito-forte",
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    body = response.json()
+    assert body["email"] == "novo@example.com"
+    assert body["role"] == "member"
+    assert body["onboarding_completed"] is False
+
+    user = await session.scalar(select(User).where(User.email == "novo@example.com"))
+    assert user is not None
+
+    me = await client.get("/me")
+    assert me.status_code == 200
+    assert me.json()["email"] == "novo@example.com"
+
+
+async def test_cadastro_publico_recusa_email_duplicado(
+    client: AsyncClient, session: AsyncSession
+) -> None:
+    await make_user(session, "membro@example.com")
+
+    response = await client.post(
+        "/auth/register-public",
+        json={
+            "name": "Outro",
+            "email": "membro@example.com",
+            "password": "senha-publica-muito-forte",
+        },
+    )
+
+    assert response.status_code == 409
+
+
 async def test_exclui_propria_conta(client: AsyncClient, session: AsyncSession) -> None:
     user = await make_user(session, "membro@example.com")
     await login(client, "membro@example.com")

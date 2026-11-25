@@ -58,17 +58,21 @@ async def onboarding(
     """Define os dois eixos de idioma, nível e meta. Pode ser refeito depois."""
 
     user.ui_language = payload.ui_language
-    user.target_language = payload.target_language
+    user.target_language = payload.study_languages[0]
+    user.study_languages = payload.study_languages
+    user.level_band = payload.level_band
+    user.program_source = payload.program_source
+    user.program_topics = payload.program_topics
     user.settings = {
         **user.settings,
-        "level": payload.level,
+        "level_band": payload.level_band,
         "daily_goal_minutes": payload.daily_goal_minutes,
     }
     user.onboarding_completed = True
     await session.commit()
 
     data = UserOut.model_validate(user).model_dump()
-    data["exercise_mode"] = exercise_mode(payload.ui_language, payload.target_language)
+    data["exercise_mode"] = exercise_mode(payload.ui_language, payload.study_languages[0])
     return OnboardingOut.model_validate(data)
 
 
@@ -123,6 +127,10 @@ async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
             "role": user.role,
             "ui_language": user.ui_language,
             "target_language": user.target_language,
+            "study_languages": list(user.study_languages or []),
+            "level_band": user.level_band,
+            "program_source": user.program_source,
+            "program_topics": list(user.program_topics or []),
             "onboarding_completed": user.onboarding_completed,
             "settings": user.settings,
             "created_at": user.created_at.isoformat(),

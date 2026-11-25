@@ -9,6 +9,7 @@ export default function Footer() {
           <Logo size={34} />
           <nav className="flex flex-wrap items-center gap-4 text-[13px] text-body">
             <a href="/login" className="hover:text-tangerine">Entrar</a>
+            <a href="/cadastro" className="hover:text-tangerine">Cadastre-se</a>
             <a href="/terms" className="hover:text-tangerine">Termos</a>
             <a href="/privacy" className="hover:text-tangerine">Privacidade</a>
             <a href="https://github.com/fcervan/tangerine-talk" target="_blank" rel="noopener noreferrer" className="hover:text-tangerine">GitHub</a>

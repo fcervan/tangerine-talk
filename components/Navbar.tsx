@@ -48,7 +48,7 @@ export default function Navbar() {
         </nav>
         <div className="flex items-center gap-3">
           <PillButton size="sm" href="/login" variant="inverted" className="hidden sm:inline-flex">Entrar</PillButton>
-          <PillButton size="sm" href="/login" className="hidden sm:inline-flex">Começar grátis</PillButton>
+          <PillButton size="sm" href="/cadastro" className="hidden sm:inline-flex">Começar grátis</PillButton>
           <button onClick={() => setOpen((o) => !o)} className="flex h-10 w-10 items-center justify-center rounded-full bg-tangerine-soft text-tangerine lg:hidden" aria-label="Menu">
             {open ? <CloseIcon /> : <MenuIcon />}
           </button>
@@ -62,7 +62,7 @@ export default function Navbar() {
                 <a key={l.href} href={l.href} onClick={(e) => go(e, l.href)} className="rounded-xl px-3 py-3 text-[15px] font-medium text-ink hover:bg-tangerine-soft">{l.label}</a>
               ))}
               <a href="/login" className="mt-2 self-start rounded-xl px-3 py-3 text-[15px] font-medium text-ink hover:bg-tangerine-soft">Entrar</a>
-              <PillButton size="sm" href="/login" className="mt-2 self-start">Começar grátis</PillButton>
+              <PillButton size="sm" href="/cadastro" className="mt-2 self-start">Começar grátis</PillButton>
             </div>
           </motion.div>
         )}

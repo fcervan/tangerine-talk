@@ -16,7 +16,7 @@ from ..security.passwords import burn_time, hash_password, needs_rehash, verify_
 from ..security.tokens import create_access_token, hash_token, new_refresh_token
 from .cookies import REFRESH_COOKIE, clear_auth_cookies, set_auth_cookies
 from .deps import SessionDep
-from .schemas import InvitePreview, LoginIn, RegisterIn, UserOut
+from .schemas import InvitePreview, LoginIn, RegisterIn, RegisterPublicIn, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -194,5 +194,31 @@ async def register(
     invite.accepted_by = user.id
     await session.commit()
 
+    await _start_session(session, user, request, response)
+    return user
+
+
+@router.post("/register-public", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+async def register_public(
+    payload: RegisterPublicIn,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+) -> User:
+    email = payload.email.lower().strip()
+    existing = await session.scalar(select(User).where(User.email == email))
+    if existing is not None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta conta já existe.")
+
+    user = User(
+        email=email,
+        name=payload.name.strip(),
+        password_hash=hash_password(payload.password),
+        role="member",
+        is_active=True,
+    )
+    session.add(user)
+    await session.flush()
+    await session.commit()
     await _start_session(session, user, request, response)
     return user

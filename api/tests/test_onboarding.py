@@ -41,8 +41,10 @@ async def test_onboarding_salva_os_dois_eixos(client: AsyncClient, session: Asyn
         "/me/onboarding",
         json={
             "ui_language": "en-us",
-            "target_language": "ja-JP",
-            "level": "A2",
+            "study_languages": ["ja-JP"],
+            "level_band": "A1_A2",
+            "program_source": "topics",
+            "program_topics": ["travel"],
             "daily_goal_minutes": 25,
         },
     )
@@ -53,7 +55,7 @@ async def test_onboarding_salva_os_dois_eixos(client: AsyncClient, session: Asyn
     assert data["target_language"] == "ja-JP"
     assert data["onboarding_completed"] is True
     assert data["exercise_mode"] == "bilingual"
-    assert data["settings"]["level"] == "A2"
+    assert data["settings"]["level_band"] == "A1_A2"
     assert data["settings"]["daily_goal_minutes"] == 25
 
     user = await session.scalar(select(User).where(User.email == "pessoa@example.com"))
@@ -69,8 +71,9 @@ async def test_par_igual_gera_deck_monolingual(client: AsyncClient, session: Asy
         "/me/onboarding",
         json={
             "ui_language": "en-US",
-            "target_language": "en-GB",
-            "level": "B1",
+            "study_languages": ["en-GB"],
+            "level_band": "B1_B2",
+            "program_source": "topics",
         },
     )
 
@@ -88,8 +91,9 @@ async def test_patch_me_troca_apenas_a_interface(
         "/me/onboarding",
         json={
             "ui_language": "pt-BR",
-            "target_language": "ja-JP",
-            "level": "A1",
+            "study_languages": ["ja-JP"],
+            "level_band": "NONE",
+            "program_source": "topics",
         },
     )
 
@@ -112,8 +116,9 @@ async def test_locale_invalido_e_rejeitado(client: AsyncClient, session: AsyncSe
             "/me/onboarding",
             json={
                 "ui_language": "pt-BR",
-                "target_language": "qualquer-coisa",
-                "level": "A1",
+                "study_languages": ["qualquer-coisa"],
+                "level_band": "NONE",
+                "program_source": "topics",
             },
         )
     ).status_code == 422
@@ -124,7 +129,12 @@ async def test_export_inclui_os_novos_campos(client: AsyncClient, session: Async
     await login(client, "export@example.com")
     await client.post(
         "/me/onboarding",
-        json={"ui_language": "pt-BR", "target_language": "de-DE", "level": "A1"},
+        json={
+            "ui_language": "pt-BR",
+            "study_languages": ["de-DE"],
+            "level_band": "NONE",
+            "program_source": "topics",
+        },
     )
 
     response = await client.get("/me/export")
@@ -144,7 +154,12 @@ async def test_onboarding_de_um_usuario_nao_altera_o_outro(
     await login(client, "um@example.com")
     await client.post(
         "/me/onboarding",
-        json={"ui_language": "pt-BR", "target_language": "ko-KR", "level": "A1"},
+        json={
+            "ui_language": "pt-BR",
+            "study_languages": ["ko-KR"],
+            "level_band": "NONE",
+            "program_source": "topics",
+        },
     )
     client.cookies.clear()
     await login(client, "dois@example.com")

@@ -65,7 +65,7 @@ export default function Hero() {
             Converse com um tutor de IA que escuta, corrige e torce por você em tempo real. Construa fluência de verdade em poucos minutos por dia — falando, ouvindo, escrevendo e brincando.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE, delay: 0.7 }} className="mt-9 flex flex-wrap items-center gap-5">
-            <PillButton magnetic href="/login">Começar a aprender</PillButton>
+            <PillButton magnetic href="/cadastro">Começar a aprender</PillButton>
             <div className="flex items-center gap-2 text-[14px] text-body">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-tangerine-lightBg text-tangerine-darker"><CheckIcon size={14} /></span>
               Grátis para começar · Sem cartão

@@ -39,9 +39,9 @@ npm install
 npm run dev     # http://localhost:3000
 ```
 
-Rotas: `/` (landing), `/login`, `/convite/{token}`, `/onboarding`, `/app`,
-`/curriculum` e `/providers`. As quatro últimas exigem sessão; o middleware
-redireciona para o login.
+Rotas: `/` (landing), `/login`, `/cadastro`, `/convite/{token}`, `/onboarding`,
+`/app`, `/curriculum` e `/providers`. As quatro últimas exigem sessão; o
+middleware redireciona para o login.
 
 ### Backend + banco
 
@@ -127,16 +127,33 @@ O progresso de lição entra em `GET /me/export` e é apagado em `DELETE /me`.
 A tela `/curriculum` mostra a trilha, uma prévia da lição e os baralhos; o
 player completo (fala, escuta, escrita e testes com IA) é a Fase 4.
 
+### Onboarding (5 passos)
+
+Na primeira entrada, o usuário passa por: (1) idioma da interface — `pt-BR` ou
+`en-US`; (2) idiomas que quer estudar — seleção livre entre inglês, chinês,
+espanhol, italiano, francês, alemão, coreano, japonês e português brasileiro;
+(3) origem do programa — 10 temas padrão (viagem, casa com família, trabalho,
+saúde, compras, comida, escola, tecnologia, lazer, emergências) ou importação
+de currículo (em breve); (4) faixa de nível — `A1/A2`, `B1/B2`, `C1/C2` ou
+"não sei nada!"; (5) meta diária e resumo. Tudo é gravado no MySQL e devolvido
+em `GET /me/export`.
+
 ### Identidade e multiusuário
 
 - `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `POST /auth/register`
+- `POST /auth/register-public` — cadastro aberto (nome, e-mail e senha)
 - `GET /me`, `PATCH /me`, `POST /me/password`, `GET /me/export`, `DELETE /me`
-- `POST /me/onboarding` — idioma da interface, idioma estudado, nível e meta
+- `POST /me/onboarding` — idioma da interface, idiomas estudados, faixa de nível,
+  origem do programa (currículo ou temas) e meta diária
 - `GET /members`, `POST /invites`, `GET /invites`, `DELETE /invites/{id}` (só owner)
 
 AccessToken JWT curto (15 min) e refresh opaco (30 dias), ambos em cookies
 `httpOnly` + `SameSite=Lax` + `Secure` fora do dev. O refresh é **rotacionado** a
 cada uso e revogado no logout. Trocar a senha encerra todas as sessões.
+
+A senha tem **mínimo de 12 caracteres** (validado no front e no back). O
+cadastro aberto (`/cadastro` → `POST /auth/register-public`) cria a conta e já
+inicia a sessão; o fluxo por convite continua existindo em `/convite/{token}`.
 
 O front encaminha `/api/*` para a API (`next.config.mjs`), então o navegador
 fala sempre com a mesma origem — sem CORS e sem token em `localStorage`.
@@ -150,6 +167,14 @@ A aplicação tem **dois eixos independentes**:
   depois. Fallback técnico: sempre `pt-BR`.
 - `target_language` — idioma estudado, escolhido no onboarding. Qualquer um:
   japonês, alemão, coreano etc. A frase avaliada permanece nesse idioma.
+- `study_languages` — lista de idiomas que o usuário quer estudar (multi-seleção
+  no onboarding: inglês, chinês, espanhol, italiano, francês, alemão, coreano,
+  japonês e português brasileiro). `target_language` guarda o primeiro da lista
+  e continua sendo o idioma usado nas trilhas.
+- `level_band` — faixa de nível escolhida: `A1_A2`, `B1_B2`, `C1_C2` ou `NONE`
+  ("não sei nada!").
+- `program_source` / `program_topics` — como o programa foi montado: `topics`
+  (temas padrão selecionados) ou `curriculum` (currículo importado).
 
 Se as bases forem iguais (ex.: interface `en-US` estudando `en-GB`), o exercício
 é **monolingual** — sem tradução, foco em leitura, gramática e pronúncia.
@@ -180,7 +205,7 @@ cd api && uv run ruff check . && uv run mypy app
 ```
 app/
   (marketing)/    landing
-  (auth)/         login e convite
+  (auth)/         login, cadastro e convite
   (app)/          onboarding, /app, /curriculum e /providers
   layout.tsx      locale vindo do cookie + LocaleProvider
 middleware.ts     portão de UX para /app, /onboarding, /curriculum e /providers
@@ -196,7 +221,8 @@ api/
   app/tutor/      chat, correção, TTS/STT com cadeia BYOK e fallback
   app/models/     usuário, sessão, convite, credencial, conteúdo (UUIDv7 em BINARY(16))
   app/security/   Argon2id, JWT/refresh, limite de tentativas e Fernet
-  alembic/        0001 identidade · 0002 idiomas · 0003 BYOK · 0004 conteúdo
+  alembic/        0001 identidade · 0002 idiomas · 0003 BYOK · 0004 conteúdo ·
+                  0005 gamificação · 0006 decks/outbox · 0007 onboarding v2
   tests/          57 testes, incluindo isolamento entre usuários
 docs/             produto, arquitetura, referências, catálogo de efeitos
 public/           mascote

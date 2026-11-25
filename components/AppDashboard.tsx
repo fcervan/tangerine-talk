@@ -56,9 +56,15 @@ export default function AppDashboard() {
   const monolingual =
     user.target_language !== null &&
     baseLanguage(user.ui_language) === baseLanguage(user.target_language);
+  const levelBand = user.level_band ?? t("app.notSet");
   const level =
-    typeof user.settings.level === "string" ? user.settings.level : t("app.notSet");
+    levelBand === "NONE"
+      ? t("onboarding.levelNone")
+      : levelBand === t("app.notSet")
+        ? levelBand
+        : levelBand.replace("_", "/");
   const goal = Number(user.settings.daily_goal_minutes ?? 0);
+  const studyLanguages = user.study_languages ?? [];
 
   const rows: Array<{ label: string; value: string }> = [
     {
@@ -71,6 +77,15 @@ export default function AppDashboard() {
     {
       label: t("app.mode"),
       value: t(monolingual ? "app.monolingual" : "app.bilingual"),
+    },
+    {
+      label: t("onboarding.studyTitle"),
+      value:
+        studyLanguages.length > 0
+          ? studyLanguages
+              .map((code) => t(`language.${code}` as TranslationKey))
+              .join(", ")
+          : t("app.notSet"),
     },
     { label: t("app.level"), value: level },
     {

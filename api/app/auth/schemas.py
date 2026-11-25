@@ -17,6 +17,8 @@ Locale = Annotated[
     AfterValidator(normalize_locale),
 ]
 Level = Literal["A1", "A2", "B1", "B2", "C1", "C2"]
+LevelBand = Literal["A1_A2", "B1_B2", "C1_C2", "NONE"]
+ProgramSource = Literal["curriculum", "topics"]
 ExerciseMode = Literal["monolingual", "bilingual"]
 
 
@@ -29,6 +31,10 @@ class UserOut(BaseModel):
     role: Literal["owner", "member"]
     ui_language: str
     target_language: str | None = None
+    study_languages: list[str] = Field(default_factory=list)
+    level_band: str | None = None
+    program_source: str | None = None
+    program_topics: list[str] = Field(default_factory=list)
     onboarding_completed: bool = False
     settings: dict[str, object] = Field(default_factory=dict)
     created_at: datetime
@@ -49,6 +55,12 @@ class RegisterIn(BaseModel):
     password: Password
 
 
+class RegisterPublicIn(BaseModel):
+    email: EmailStr
+    name: str = Field(min_length=1, max_length=120)
+    password: Password
+
+
 class InvitePreview(BaseModel):
     email: str
     role: str
@@ -64,8 +76,10 @@ class MeUpdateIn(BaseModel):
 
 class OnboardingIn(BaseModel):
     ui_language: Locale
-    target_language: Locale
-    level: Level
+    study_languages: list[Locale] = Field(min_length=1)
+    level_band: LevelBand
+    program_source: ProgramSource
+    program_topics: list[str] = Field(default_factory=list)
     daily_goal_minutes: int = Field(default=15, ge=5, le=180)
 
 

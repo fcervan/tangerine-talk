@@ -17,6 +17,10 @@ export interface User {
   role: "owner" | "member";
   ui_language: string;
   target_language: string | null;
+  study_languages: string[];
+  level_band: string | null;
+  program_source: string | null;
+  program_topics: string[];
   onboarding_completed: boolean;
   settings: Record<string, unknown>;
   created_at: string;
@@ -199,13 +203,19 @@ export async function apiFetch<T>(
     let detail = "Erro na requisição.";
     try {
       const body: unknown = await response.json();
-      if (
-        body &&
-        typeof body === "object" &&
-        "detail" in body &&
-        typeof body.detail === "string"
-      ) {
-        detail = body.detail;
+      if (body && typeof body === "object" && "detail" in body) {
+        const raw = body.detail;
+        if (typeof raw === "string") {
+          detail = raw;
+        } else if (Array.isArray(raw) && raw.length > 0) {
+          // FastAPI devolve lista de erros de validação (422).
+          const first = raw[0] as { msg?: unknown; loc?: unknown };
+          const message = typeof first.msg === "string" ? first.msg : "";
+          const field = Array.isArray(first.loc)
+            ? first.loc.filter((part) => part !== "body").join(".")
+            : "";
+          detail = field ? `${field}: ${message}` : message || detail;
+        }
       }
     } catch {
       // Resposta sem JSON: mantém a mensagem genérica.
