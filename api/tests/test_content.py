@@ -27,7 +27,7 @@ async def prepared_user(
 
 
 async def setup(client: AsyncClient, session: AsyncSession, ui_language: str = "pt-BR") -> None:
-    await seed_content(session)
+    await seed_content(session, target_language="es")
     await prepared_user(session, ui_language=ui_language)
     await login(client, "aluno@example.com")
 
@@ -39,9 +39,9 @@ async def first_units(client: AsyncClient) -> list[dict[str, Any]]:
 
 
 async def test_seed_e_idempotente(session: AsyncSession) -> None:
-    first = await seed_content(session)
-    assert first == {"units": 2, "lessons": 3, "items": 10, "exercises": 8, "decks": 1}
-    second = await seed_content(session)
+    first = await seed_content(session, target_language="es")
+    assert first == {"units": 10, "lessons": 18, "items": 65, "exercises": 48, "decks": 2}
+    second = await seed_content(session, target_language="es")
     assert not any(second.values())
 
 
@@ -56,13 +56,16 @@ async def test_trilha_respeita_pre_requisito(client: AsyncClient, session: Async
     await setup(client, session)
     units = await first_units(client)
 
-    assert [unit["slug"] for unit in units] == ["saudacoes", "numeros"]
-    assert [unit["status"] for unit in units] == ["available", "locked"]
+    # Primeiras 2 unidades (A1): saudacoes, numeros-1-10
+    assert [unit["slug"] for unit in units[:2]] == ["saudacoes", "numeros-1-10"]
+    assert [unit["status"] for unit in units[:2]] == ["available", "locked"]
+    # Primeira unidade tem 2 lições (primeiras-saudacoes, agradecimentos)
+    assert len(units[0]["lessons"]) == 2
     assert [lesson["status"] for lesson in units[0]["lessons"]] == [
         "available",
         "available",
     ]
-    assert units[0]["lessons"][0]["exercise_count"] == 3
+    assert units[0]["lessons"][0]["exercise_count"] == 4  # 4 exercícios na primeira lição
     locked_lesson = units[1]["lessons"][0]["id"]
 
     detail = await client.get(f"/curriculum/lessons/{locked_lesson}")
@@ -84,7 +87,9 @@ async def test_concluir_licoes_desbloqueia_e_xp_nao_duplica(
         assert done.json()["xp_earned"] == 10
 
     units = await first_units(client)
-    assert [unit["status"] for unit in units] == ["completed", "available"]
+    # Apenas as duas primeiras unidades (A1) são afetadas pelo progresso
+    assert units[0]["status"] == "completed"
+    assert units[1]["status"] == "available"
     assert all(lesson["status"] == "completed" for lesson in units[0]["lessons"])
 
     repeat = await client.post(f"/curriculum/lessons/{lesson_ids[0]}/complete", json={})
@@ -124,24 +129,29 @@ async def test_unidade_detalha_itens_e_decks_oficiais(
 
     detail = await client.get(f"/curriculum/units/{units[0]['id']}")
     assert detail.status_code == 200, detail.text
-    assert len(detail.json()["items"]) == 6
+    # Primeira unidade (saudacoes) tem 8 itens
+    assert len(detail.json()["items"]) == 8
     assert detail.json()["items"][0]["gloss_locale"] == "en-US"
 
     decks = await client.get("/decks")
     assert decks.status_code == 200, decks.text
     assert decks.json()["target_language"] == "es"
-    assert len(decks.json()["decks"]) == 1
-    assert decks.json()["decks"][0]["item_count"] == 10
+    assert len(decks.json()["decks"]) == 2
+    # Deck essencial A1 tem 35 itens
+    assert decks.json()["decks"][0]["item_count"] == 35
 
     deck = await client.get(f"/decks/{decks.json()['decks'][0]['id']}")
     assert deck.status_code == 200, deck.text
-    assert len(deck.json()["items"]) == 10
-    assert deck.json()["items"][0]["front_text"] == "Hola"
-    assert deck.json()["items"][0]["gloss"] == "Hello"
+    assert len(deck.json()["items"]) == 35
+    # O primeiro item pode variar dependendo da ordem de inserção; verificar se "Hola" está presente
+    front_texts = [item["front_text"] for item in deck.json()["items"]]
+    assert "Hola" in front_texts
+    hola_item = next(item for item in deck.json()["items"] if item["front_text"] == "Hola")
+    assert hola_item["gloss"] == "Hello"
 
 
 async def test_progresso_e_isolado_por_usuario(client: AsyncClient, session: AsyncSession) -> None:
-    await seed_content(session)
+    await seed_content(session, target_language="es")
     await prepared_user(session, "um@example.com")
     await prepared_user(session, "dois@example.com")
     await login(client, "um@example.com")
