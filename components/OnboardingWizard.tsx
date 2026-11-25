@@ -7,6 +7,7 @@ import { apiFetch, jsonBody, type OnboardingResult } from "@/lib/api";
 import type { TranslationKey } from "@/lib/i18n";
 
 import { useI18n } from "./LocaleProvider";
+import Logo from "./Logo";
 
 const UI_LOCALES = ["pt-BR", "en-US"] as const;
 const STUDY_LANGUAGES = [
@@ -104,7 +105,7 @@ export default function OnboardingWizard() {
 
   return (
     <section className="card w-full max-w-2xl p-7 sm:p-9">
-      <p className="eyebrow">Tangerine Talk</p>
+      <Logo size={36} />
       <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">
         {t("onboarding.title")}
       </h1>
