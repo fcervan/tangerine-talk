@@ -34,7 +34,13 @@ const TOPICS = [
   "emergencies",
 ] as const;
 const LEVEL_BANDS = ["A1_A2", "B1_B2", "C1_C2", "NONE"] as const;
-const TOTAL_STEPS = 5;
+// Ordem padrão pedida no produto: Groq → Ollama Cloud → OpenRouter.
+const INFERENCE_PROVIDERS = [
+  { slug: "groq", label: "Groq" },
+  { slug: "ollama_cloud", label: "Ollama Cloud" },
+  { slug: "openrouter", label: "OpenRouter" },
+] as const;
+const TOTAL_STEPS = 6;
 
 const inputClass =
   "mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm text-ink placeholder:text-body/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tangerine";
@@ -51,6 +57,12 @@ export default function OnboardingWizard() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [uiLanguage, setUiLanguage] = useState("pt-BR");
+  const [inferenceProvider, setInferenceProvider] = useState<string>("groq");
+  const [inferenceModel, setInferenceModel] = useState("");
+  const [inferenceFallbacks, setInferenceFallbacks] = useState<string[]>([
+    "ollama_cloud",
+    "openrouter",
+  ]);
   const [studyLanguages, setStudyLanguages] = useState<string[]>([]);
   const [programSource, setProgramSource] = useState<"curriculum" | "topics">("topics");
   const [topics, setTopics] = useState<string[]>([]);
@@ -63,13 +75,23 @@ export default function OnboardingWizard() {
     setter(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
   }
 
+  function selectInferenceProvider(slug: string) {
+    setInferenceProvider(slug);
+    // O provedor escolhido não pode ser fallback de si mesmo.
+    setInferenceFallbacks((current) => current.filter((item) => item !== slug));
+  }
+
   function advance() {
     setError(null);
-    if (step === 1 && studyLanguages.length === 0) {
+    if (step === 1 && !inferenceProvider) {
+      setError(t("onboarding.inferenceRequired"));
+      return;
+    }
+    if (step === 2 && studyLanguages.length === 0) {
       setError(t("onboarding.studyRequired"));
       return;
     }
-    if (step === 2 && programSource === "topics" && topics.length === 0) {
+    if (step === 3 && programSource === "topics" && topics.length === 0) {
       setError(t("onboarding.topicsRequired"));
       return;
     }
@@ -89,6 +111,9 @@ export default function OnboardingWizard() {
           program_source: programSource,
           program_topics: topics,
           daily_goal_minutes: goal,
+          inference_provider: inferenceProvider,
+          inference_fallbacks: inferenceFallbacks,
+          inference_model: inferenceModel.trim() || undefined,
         }),
       });
       await setLocale(uiLanguage);

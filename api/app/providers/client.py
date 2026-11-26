@@ -16,10 +16,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
-from ..models import ProviderCredential
+from ..models import ProviderCredential, User
 from ..models.base import utcnow
 from ..security.keys import SecretUnavailableError, decrypt_secret
-from .catalog import TASK_CAPABILITIES, TaskName, get_spec
+from .catalog import FALLBACK_ORDER, TASK_CAPABILITIES, TaskName, get_spec
 from .schemas import TestStatus
 
 
@@ -118,6 +118,10 @@ async def resolve_chain(
 
     `OFFLINE_MODE=1` remove provedores em nuvem da cadeia. O local (Ollama)
     entra por último, inclusive online, como última opção do próprio usuário.
+
+    A escolha feita no onboarding (`inference_provider` + `inference_fallbacks`)
+    tem prioridade; o que não for escolhido vem depois, na ordem padrão.
+    Provedor sem credencial cadastrada simplesmente não entra na cadeia.
     """
     rows = list(
         await session.scalars(
@@ -127,8 +131,15 @@ async def resolve_chain(
             )
         )
     )
+    user = await session.get(User, user_id)
+    preferred: list[str] = []
+    if user is not None:
+        for provider in [user.inference_provider, *list(user.inference_fallbacks)]:
+            if provider and provider not in preferred:
+                preferred.append(provider)
+    chosen = [*preferred, *FALLBACK_ORDER]
     needed = TASK_CAPABILITIES.get(task, frozenset({"chat"}))
-    ranked: list[tuple[int, str, ProviderCredential]] = []
+    ranked: list[tuple[int, int, str, ProviderCredential]] = []
     for row in rows:
         spec = get_spec(row.provider)
         if spec is None:
@@ -137,9 +148,10 @@ async def resolve_chain(
             continue
         if not needed.issubset(spec.capabilities):
             continue
-        ranked.append((spec.fallback_order, str(row.created_at), row))
-    ranked.sort(key=lambda item: (item[0], item[1]))
-    return [item[2] for item in ranked]
+        preference = chosen.index(row.provider) if row.provider in chosen else len(chosen)
+        ranked.append((preference, spec.fallback_order, str(row.created_at), row))
+    ranked.sort(key=lambda item: (item[0], item[1], item[2]))
+    return [item[3] for item in ranked]
 
 
 async def chat_completion(

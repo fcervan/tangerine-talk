@@ -34,6 +34,10 @@ class User(Base):
     program_source: Mapped[str | None] = mapped_column(String(16), nullable=True)
     # IDs dos temas selecionados (quando program_source == "topics").
     program_topics: Mapped[list[str]] = mapped_column(JSON, default=list)
+    # Provedor de inferência escolhido no onboarding (groq, ollama_cloud, openrouter).
+    inference_provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # Ordem de fallback informada pelo usuário; provedores sem credencial são ignorados.
+    inference_fallbacks: Mapped[list[str]] = mapped_column(JSON, default=list)
     onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False)
     settings: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     is_active: Mapped[bool] = mapped_column(default=True)
