@@ -127,16 +127,23 @@ O progresso de lição entra em `GET /me/export` e é apagado em `DELETE /me`.
 A tela `/curriculum` mostra a trilha, uma prévia da lição e os baralhos; o
 player completo (fala, escuta, escrita e testes com IA) é a Fase 4.
 
-### Onboarding (5 passos)
+### Onboarding (6 passos)
 
 Na primeira entrada, o usuário passa por: (1) idioma da interface — `pt-BR` ou
-`en-US`; (2) idiomas que quer estudar — seleção livre entre inglês, chinês,
-espanhol, italiano, francês, alemão, coreano, japonês e português brasileiro;
-(3) origem do programa — 10 temas padrão (viagem, casa com família, trabalho,
-saúde, compras, comida, escola, tecnologia, lazer, emergências) ou importação
-de currículo (em breve); (4) faixa de nível — `A1/A2`, `B1/B2`, `C1/C2` ou
-"não sei nada!"; (5) meta diária e resumo. Tudo é gravado no MySQL e devolvido
-em `GET /me/export`.
+`en-US`; (2) **servidor de inferência** — provedor principal (`groq`,
+`ollama_cloud` ou `openrouter`), modelo e ordem de fallback; (3) idiomas que
+quer estudar — seleção livre entre inglês, chinês, espanhol, italiano,
+francês, alemão, coreano, japonês e português brasileiro; (4) origem do programa
+— 10 temas padrão (viagem, casa com família, trabalho, saúde, compras, comida,
+escola, tecnologia, lazer, emergências) ou importação de currículo (em breve);
+(5) faixa de nível — `A1/A2`, `B1/B2`, `C1/C2` ou "não sei nada!"; (6) meta
+diária e resumo. Tudo é gravado no MySQL e devolvido em `GET /me/export`.
+
+A escolha do provedor define a **ordem da cadeia de fallback** usada pelo
+tutor (`resolve_chain`): o provedor principal vem primeiro, depois os
+fallbacks na ordem escolhida e, por último, a ordem padrão do catálogo
+(`groq → ollama_cloud → openrouter → ollama`). Provedor sem credencial
+cadastrada simplesmente não entra na cadeia.
 
 ### Identidade e multiusuário
 
@@ -144,7 +151,8 @@ em `GET /me/export`.
 - `POST /auth/register-public` — cadastro aberto (nome, e-mail e senha)
 - `GET /me`, `PATCH /me`, `POST /me/password`, `GET /me/export`, `DELETE /me`
 - `POST /me/onboarding` — idioma da interface, idiomas estudados, faixa de nível,
-  origem do programa (currículo ou temas) e meta diária
+  origem do programa (currículo ou temas), meta diária e escolha do provedor
+  de inferência (principal, modelo e fallbacks)
 - `GET /members`, `POST /invites`, `GET /invites`, `DELETE /invites/{id}` (só owner)
 
 AccessToken JWT curto (15 min) e refresh opaco (30 dias), ambos em cookies
@@ -175,6 +183,9 @@ A aplicação tem **dois eixos independentes**:
   ("não sei nada!").
 - `program_source` / `program_topics` — como o programa foi montado: `topics`
   (temas padrão selecionados) ou `curriculum` (currículo importado).
+- `inference_provider` / `inference_fallbacks` — provedor principal e ordem de
+  fallback escolhidos no onboarding (`groq`, `ollama_cloud`, `openrouter`).
+  O modelo escolhido fica em `settings.inference_model`.
 
 Se as bases forem iguais (ex.: interface `en-US` estudando `en-GB`), o exercício
 é **monolingual** — sem tradução, foco em leitura, gramática e pronúncia.
@@ -222,7 +233,8 @@ api/
   app/models/     usuário, sessão, convite, credencial, conteúdo (UUIDv7 em BINARY(16))
   app/security/   Argon2id, JWT/refresh, limite de tentativas e Fernet
   alembic/        0001 identidade · 0002 idiomas · 0003 BYOK · 0004 conteúdo ·
-                  0005 gamificação · 0006 decks/outbox · 0007 onboarding v2
+                  0005 gamificação · 0006 decks/outbox · 0007 onboarding v2 ·
+                  0008 escolha de provedor de inferência
   tests/          57 testes, incluindo isolamento entre usuários
 docs/             produto, arquitetura, referências, catálogo de efeitos
 public/           mascote

@@ -102,7 +102,10 @@ class OnboardingIn(BaseModel):
     @field_validator("inference_model")
     @classmethod
     def clean_model(cls, value: str | None) -> str | None:
-        return value.strip() if value else None
+        if value is None:
+            return None
+        stripped = value.strip()
+        return stripped or None
 
     @field_validator("inference_fallbacks")
     @classmethod
@@ -117,7 +120,7 @@ class OnboardingIn(BaseModel):
         return ordered
 
     @model_validator(mode="after")
-    def check_inference(self) -> "OnboardingIn":
+    def check_inference(self) -> OnboardingIn:
         self.inference_fallbacks = [
             item for item in self.inference_fallbacks if item != self.inference_provider
         ]

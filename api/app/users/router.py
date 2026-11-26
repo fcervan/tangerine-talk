@@ -64,7 +64,7 @@ async def onboarding(
     user.program_source = payload.program_source
     user.program_topics = payload.program_topics
     user.inference_provider = payload.inference_provider
-    user.inference_fallbacks = payload.inference_fallbacks
+    user.inference_fallbacks = list(payload.inference_fallbacks)
     user.settings = {
         **user.settings,
         "level_band": payload.level_band,
@@ -146,6 +146,8 @@ async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
             "level_band": user.level_band,
             "program_source": user.program_source,
             "program_topics": list(user.program_topics or []),
+            "inference_provider": user.inference_provider,
+            "inference_fallbacks": list(user.inference_fallbacks or []),
             "onboarding_completed": user.onboarding_completed,
             "settings": user.settings,
             "created_at": user.created_at.isoformat(),

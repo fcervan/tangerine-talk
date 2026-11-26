@@ -7,7 +7,6 @@ import { apiFetch, jsonBody, type OnboardingResult } from "@/lib/api";
 import type { TranslationKey } from "@/lib/i18n";
 
 import { useI18n } from "./LocaleProvider";
-import Logo from "./Logo";
 
 const UI_LOCALES = ["pt-BR", "en-US"] as const;
 const STUDY_LANGUAGES = [
@@ -127,10 +126,42 @@ export default function OnboardingWizard() {
 
   const levelLabel = (band: string) =>
     band === "NONE" ? t("onboarding.levelNone") : band.replace("_", "/");
+  const providerLabel = (slug: string) =>
+    INFERENCE_PROVIDERS.find((item) => item.slug === slug)?.label ?? slug;
+  const uiLabel =
+    uiLanguage === "pt-BR" ? t("onboarding.interfaceOptionBr") : t("onboarding.interfaceOptionEn");
+
+  const overview = [
+    { label: t("onboarding.overviewStepUi"), value: uiLabel },
+    {
+      label: t("onboarding.overviewStepInference"),
+      value: `${providerLabel(inferenceProvider)}${
+        inferenceModel.trim() ? ` · ${inferenceModel.trim()}` : ""
+      }`,
+    },
+    {
+      label: t("onboarding.overviewStepStudy"),
+      value:
+        studyLanguages.length > 0
+          ? studyLanguages.map((code) => t(`language.${code}` as TranslationKey)).join(", ")
+          : t("app.notSet"),
+    },
+    {
+      label: t("onboarding.overviewStepProgram"),
+      value:
+        programSource === "topics"
+          ? `${t("onboarding.sourceTopics")}: ${topics
+              .map((topic) => t(`topic.${topic}` as TranslationKey))
+              .join(", ")}`
+          : t("onboarding.sourceCurriculum"),
+    },
+    { label: t("onboarding.overviewStepLevel"), value: levelLabel(levelBand) },
+    { label: t("onboarding.overviewStepGoal"), value: `${goal} ${t("app.minutes")}` },
+  ];
 
   return (
     <section className="card w-full max-w-2xl p-7 sm:p-9">
-      <Logo size={36} />
+      <p className="eyebrow">Tangerine Talk</p>
       <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">
         {t("onboarding.title")}
       </h1>
@@ -176,6 +207,76 @@ export default function OnboardingWizard() {
       )}
 
       {step === 1 && (
+        <div className="mt-7 space-y-5">
+          <div>
+            <h2 className="text-lg font-semibold text-ink">{t("onboarding.inferenceTitle")}</h2>
+            <p className="mt-1 text-sm text-body">{t("onboarding.inferenceHelp")}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-ink">
+              {t("onboarding.inferenceProviderLabel")}
+            </label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {INFERENCE_PROVIDERS.map((provider) => (
+                <button
+                  key={provider.slug}
+                  type="button"
+                  aria-pressed={inferenceProvider === provider.slug}
+                  onClick={() => selectInferenceProvider(provider.slug)}
+                  className={chipClass(inferenceProvider === provider.slug)}
+                >
+                  {provider.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label htmlFor="inference-model" className="text-sm font-medium text-ink">
+              {t("onboarding.inferenceModelLabel")}
+            </label>
+            <input
+              id="inference-model"
+              value={inferenceModel}
+              maxLength={120}
+              onChange={(event) => setInferenceModel(event.target.value)}
+              placeholder="llama-3.3-70b-versatile"
+              className={inputClass}
+            />
+            <p className="mt-1.5 text-xs text-body">{t("onboarding.inferenceModelHelp")}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-ink">
+              {t("onboarding.inferenceFallbackLabel")}
+            </label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {INFERENCE_PROVIDERS.filter((provider) => provider.slug !== inferenceProvider).map(
+                (provider) => {
+                  const position = inferenceFallbacks.indexOf(provider.slug);
+                  return (
+                    <button
+                      key={provider.slug}
+                      type="button"
+                      aria-pressed={position >= 0}
+                      onClick={() =>
+                        toggle(inferenceFallbacks, provider.slug, setInferenceFallbacks)
+                      }
+                      className={chipClass(position >= 0)}
+                    >
+                      {position >= 0 ? `${position + 1}. ${provider.label}` : provider.label}
+                    </button>
+                  );
+                },
+              )}
+            </div>
+            <p className="mt-1.5 text-xs text-body">{t("onboarding.inferenceFallbackHelp")}</p>
+          </div>
+          <div className="rounded-2xl bg-tangerine-soft p-4 text-sm text-body">
+            {t("onboarding.inferenceNeedsKey")}
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
         <div className="mt-7">
           <h2 className="text-lg font-semibold text-ink">{t("onboarding.studyTitle")}</h2>
           <p className="mt-1 text-sm text-body">{t("onboarding.studyHelp")}</p>
@@ -195,7 +296,7 @@ export default function OnboardingWizard() {
         </div>
       )}
 
-      {step === 2 && (
+      {step === 3 && (
         <div className="mt-7 space-y-5">
           <div>
             <h2 className="text-lg font-semibold text-ink">{t("onboarding.programTitle")}</h2>
@@ -249,7 +350,7 @@ export default function OnboardingWizard() {
         </div>
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <div className="mt-7">
           <h2 className="text-lg font-semibold text-ink">{t("onboarding.levelTitle")}</h2>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -268,7 +369,7 @@ export default function OnboardingWizard() {
         </div>
       )}
 
-      {step === 4 && (
+      {step === 5 && (
         <div className="mt-7 space-y-5">
           <div>
             <label htmlFor="goal" className="text-sm font-medium text-ink">
@@ -286,20 +387,16 @@ export default function OnboardingWizard() {
             <p className="mt-1.5 text-xs text-body">{t("onboarding.goalHelp")}</p>
           </div>
           <div className="rounded-2xl bg-tangerine-soft p-4">
-            <p className="text-sm font-semibold text-ink">{t("onboarding.summaryTitle")}</p>
-            <p className="mt-1 text-sm text-body">
-              {t("onboarding.summary", {
-                ui: uiLanguage,
-                languages: studyLanguages
-                  .map((code) => t(`language.${code}` as TranslationKey))
-                  .join(", "),
-                level: levelLabel(levelBand),
-                source:
-                  programSource === "topics"
-                    ? t("onboarding.sourceTopics")
-                    : t("onboarding.sourceCurriculum"),
-              })}
-            </p>
+            <p className="text-sm font-semibold text-ink">{t("onboarding.overviewTitle")}</p>
+            <p className="mt-1 text-xs text-body">{t("onboarding.overviewHelp")}</p>
+            <dl className="mt-3 space-y-2">
+              {overview.map((item) => (
+                <div key={item.label} className="flex flex-wrap justify-between gap-2 text-sm">
+                  <dt className="text-body">{item.label}</dt>
+                  <dd className="font-medium text-ink">{item.value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
       )}
