@@ -190,6 +190,70 @@ async def test_fallback_e_modo_offline(
     assert (await client.get("/me/providers")).json()["offline_mode"] is True
 
 
+async def test_cadeia_respeita_o_provedor_escolhido_no_onboarding(
+    client: AsyncClient, session: AsyncSession
+) -> None:
+    await make_user(session, "owner@example.com", role="owner")
+    await login(client, "owner@example.com")
+    for provider in ("openrouter", "ollama_cloud", "groq"):
+        created = await client.post(
+            "/me/providers",
+            json={"provider": provider, "api_key": f"chave-{provider}-123456"},
+        )
+        assert created.status_code == 201, created.text
+
+    onboarding = await client.post(
+        "/me/onboarding",
+        json={
+            "ui_language": "pt-BR",
+            "study_languages": ["ja-JP"],
+            "level_band": "A1_A2",
+            "program_source": "topics",
+            "program_topics": ["travel"],
+            "inference_provider": "openrouter",
+            "inference_fallbacks": ["groq"],
+        },
+    )
+    assert onboarding.status_code == 200, onboarding.text
+
+    chain = (await client.get("/me/providers/route?task=chat")).json()
+    assert [item["provider"] for item in chain["chain"]] == [
+        "openrouter",
+        "groq",
+        "ollama_cloud",
+    ]
+
+
+async def test_modelo_escolhido_no_onboarding_aplica_na_credencial(
+    client: AsyncClient, session: AsyncSession
+) -> None:
+    await make_user(session, "owner@example.com", role="owner")
+    await login(client, "owner@example.com")
+    created = await client.post(
+        "/me/providers",
+        json={"provider": "groq", "api_key": "gsk_chave_do_bob_12345"},
+    )
+    assert created.status_code == 201, created.text
+
+    onboarding = await client.post(
+        "/me/onboarding",
+        json={
+            "ui_language": "pt-BR",
+            "study_languages": ["ja-JP"],
+            "level_band": "A1_A2",
+            "program_source": "topics",
+            "program_topics": ["travel"],
+            "inference_provider": "groq",
+            "inference_model": "llama-3.3-70b-versatile",
+        },
+    )
+    assert onboarding.status_code == 200, onboarding.text
+
+    providers = (await client.get("/me/providers")).json()
+    groq = next(item for item in providers["items"] if item["provider"] == "groq")
+    assert groq["model"] == "llama-3.3-70b-versatile"
+
+
 @pytest.mark.parametrize(
     ("status_code", "expected"),
     [

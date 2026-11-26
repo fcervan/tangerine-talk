@@ -6,7 +6,15 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from ..i18n import normalize_locale
 
@@ -20,6 +28,8 @@ Level = Literal["A1", "A2", "B1", "B2", "C1", "C2"]
 LevelBand = Literal["A1_A2", "B1_B2", "C1_C2", "NONE"]
 ProgramSource = Literal["curriculum", "topics"]
 ExerciseMode = Literal["monolingual", "bilingual"]
+# Provedores que podem ser escolhidos no onboarding (a ordem de fallback é do catálogo).
+InferenceProvider = Literal["groq", "ollama_cloud", "openrouter"]
 
 
 class UserOut(BaseModel):
@@ -35,6 +45,8 @@ class UserOut(BaseModel):
     level_band: str | None = None
     program_source: str | None = None
     program_topics: list[str] = Field(default_factory=list)
+    inference_provider: str | None = None
+    inference_fallbacks: list[str] = Field(default_factory=list)
     onboarding_completed: bool = False
     settings: dict[str, object] = Field(default_factory=dict)
     created_at: datetime
@@ -81,6 +93,38 @@ class OnboardingIn(BaseModel):
     program_source: ProgramSource
     program_topics: list[str] = Field(default_factory=list)
     daily_goal_minutes: int = Field(default=15, ge=5, le=180)
+    # Servidor de inferência escolhido no onboarding + ordem de fallback.
+    inference_provider: InferenceProvider
+    inference_fallbacks: list[InferenceProvider] = Field(default_factory=list)
+    # Nome do modelo no provedor escolhido. Livre por enquanto; vazio usa o padrão.
+    inference_model: str | None = Field(default=None, min_length=1, max_length=120)
+
+    @field_validator("inference_model")
+    @classmethod
+    def clean_model(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip()
+        return stripped or None
+
+    @field_validator("inference_fallbacks")
+    @classmethod
+    def clean_fallbacks(cls, value: list[str]) -> list[str]:
+        """Sem duplicatas e sem repetir o provedor principal."""
+        seen: set[str] = set()
+        ordered: list[str] = []
+        for item in value:
+            if item not in seen:
+                seen.add(item)
+                ordered.append(item)
+        return ordered
+
+    @model_validator(mode="after")
+    def check_inference(self) -> OnboardingIn:
+        self.inference_fallbacks = [
+            item for item in self.inference_fallbacks if item != self.inference_provider
+        ]
+        return self
 
 
 class OnboardingOut(UserOut):

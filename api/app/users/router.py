@@ -63,13 +63,28 @@ async def onboarding(
     user.level_band = payload.level_band
     user.program_source = payload.program_source
     user.program_topics = payload.program_topics
+    user.inference_provider = payload.inference_provider
+    user.inference_fallbacks = list(payload.inference_fallbacks)
     user.settings = {
         **user.settings,
         "level_band": payload.level_band,
         "daily_goal_minutes": payload.daily_goal_minutes,
+        "inference_model": payload.inference_model or "",
     }
     user.onboarding_completed = True
     await session.commit()
+
+    # O modelo escolhido no onboarding vale para a credencial do provedor principal.
+    if payload.inference_model:
+        row = await session.scalar(
+            select(ProviderCredential).where(
+                ProviderCredential.user_id == user.id,
+                ProviderCredential.provider == payload.inference_provider,
+            )
+        )
+        if row is not None:
+            row.model = payload.inference_model
+            await session.commit()
 
     data = UserOut.model_validate(user).model_dump()
     data["exercise_mode"] = exercise_mode(payload.ui_language, payload.study_languages[0])
@@ -131,6 +146,8 @@ async def export_me(user: CurrentUser, session: SessionDep) -> JSONResponse:
             "level_band": user.level_band,
             "program_source": user.program_source,
             "program_topics": list(user.program_topics or []),
+            "inference_provider": user.inference_provider,
+            "inference_fallbacks": list(user.inference_fallbacks or []),
             "onboarding_completed": user.onboarding_completed,
             "settings": user.settings,
             "created_at": user.created_at.isoformat(),
